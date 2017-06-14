@@ -49,10 +49,18 @@ def test_iris():
     x = dataframe_obj.iloc[0:100, [0, 2]].values
     print(x)
     print(type(x))
-    matplotlib.pyplot.scatter(x[:50, 0], x[:50, 1], label="Setosa")
 
+    matplotlib.pyplot.scatter(x[:50, 0], x[:50, 1], label="Setosa")
     matplotlib.pyplot.scatter(x[50:, 0], x[50:, 1], label="Versicolor")
+
+    matplotlib.pyplot.xlabel("Petal length")
+    matplotlib.pyplot.ylabel("Sepal length")
+
+    matplotlib.pyplot.legend()
+
     matplotlib.pyplot.show()
+
+    #perceptron_obj = perceptron.Perceptron(eta=0.1, n_iter=10)
 
 
 if __name__ == "__main__":
