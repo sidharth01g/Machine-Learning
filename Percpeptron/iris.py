@@ -2,6 +2,7 @@ import pandas
 import perceptron
 import matplotlib.pyplot
 import numpy
+import sys
 
 
 def get_dataframe(url, header=None):
@@ -11,6 +12,8 @@ def get_dataframe(url, header=None):
     except Exception as error:
         print("Exception occured while getting dataframe")
         print(str(error))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print("Line: " + str(exc_tb.tb_lineno))
         raise error
 
     return dataframe_obj
@@ -28,6 +31,9 @@ def test_iris():
         dataframe_obj = get_dataframe(url)
     except Exception as error:
         print("ERROR: Fetching dataframe failed")
+        print(str(error))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print("Line: " + str(exc_tb.tb_lineno))
         raise error
 
 
@@ -59,8 +65,20 @@ def test_iris():
     matplotlib.pyplot.legend()
 
     matplotlib.pyplot.show()
+    matplotlib.pyplot.close()
 
-    #perceptron_obj = perceptron.Perceptron(eta=0.1, n_iter=10)
+    perceptron_obj = perceptron.Perceptron(eta=0.1, n_iter=10)
+    print("Performing perceptron fit..")
+    perceptron_obj.fit(x, y)
+    # print(perceptron_obj.errors_)
+
+    matplotlib.pyplot.plot(
+        range(1, len(perceptron_obj.errors_) + 1),
+        perceptron_obj.errors_,
+        marker='o'
+    )
+    matplotlib.pyplot.show()
+
 
 
 if __name__ == "__main__":
@@ -68,4 +86,7 @@ if __name__ == "__main__":
         test_iris()
     except Exception as error:
         print("ERROR: Iris test error")
+        print(str(error))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print("Line: " + str(exc_tb.tb_lineno))
         exit(1)
