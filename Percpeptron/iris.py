@@ -74,11 +74,12 @@ def test_iris():
 
     matplotlib.pyplot.plot(
         range(1, len(perceptron_obj.errors_) + 1),
-        perceptron_obj.errors_,
-        marker='o'
+        perceptron_obj.errors_
     )
+    matplotlib.pyplot.xlabel("Iterations")
+    matplotlib.pyplot.ylabel("Number of misclassifications")
     matplotlib.pyplot.show()
-
+    matplotlib.pyplot.close()
 
 
 if __name__ == "__main__":
