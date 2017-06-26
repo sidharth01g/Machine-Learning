@@ -3,6 +3,12 @@ import perceptron
 import matplotlib.pyplot
 import numpy
 import sys
+import os
+dir_path = os.path.dirname(os.path.realpath(__file__))
+parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
+sys.path.insert(0, parent_dir)
+import utils
+import utils.plots
 
 
 def get_dataframe(url, header=None):
@@ -35,7 +41,6 @@ def test_iris():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         print("Line: " + str(exc_tb.tb_lineno))
         raise error
-
 
     dataframe_obj = pandas.read_csv(
         'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/' +
@@ -81,10 +86,17 @@ def test_iris():
     matplotlib.pyplot.show()
     matplotlib.pyplot.close()
 
+    custom_plot1 = utils.plots.CustomPlots()
+    custom_plot1.plot_decision_regions_1(X=x, y=y, classifier=perceptron_obj)
+    matplotlib.pyplot.show()
+    matplotlib.pyplot.close()
+
 
 if __name__ == "__main__":
+    test_iris()
     try:
-        test_iris()
+        pass
+        #test_iris()
     except Exception as error:
         print("ERROR: Iris test error")
         print(str(error))
