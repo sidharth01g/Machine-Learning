@@ -17,9 +17,9 @@ class CustomPlots(object):
 
         # Plot decision surface
         x1_min = X[:, 0].min() - 1
-        x1_max = X[:, 0].max() - 1
+        x1_max = X[:, 0].max() + 1
         x2_min = X[:, 1].min() - 1
-        x2_max = X[:, 1].max() - 1
+        x2_max = X[:, 1].max() + 1
 
         (xx1, xx2) = np.meshgrid(
             np.arange(x1_min, x1_max, resolution),
@@ -31,9 +31,9 @@ class CustomPlots(object):
         z = classifier.predict(
             np.array(([xx1.ravel(), xx2.ravel()])).T
         )
-        print(z)
+        # print(z)
         z = z.reshape(xx1.shape)
-        print(z)
+        # print(z)
 
         plt.contourf(xx1, xx2, z, alpha=0.4, cmap=cmap)
         plt.xlim(xx1.min(), xx1.max())
@@ -51,6 +51,20 @@ class CustomPlots(object):
                 c=cmap(index),
                 marker=markers[index],
                 label=class_label
+            )
+
+        # Highlight test samples: indentified using index 'test_idx'
+        if test_idx:
+            (X_test, y_test) = X[test_idx, :], y[test_idx]
+            plt.scatter(
+                X_test[:, 0],
+                X_test[:, 1],
+                c='k',
+                alpha=0.5,
+                linewidth=1,
+                marker='*',
+                s=55,
+                label='Test Set'
             )
 
         # plt.show()
