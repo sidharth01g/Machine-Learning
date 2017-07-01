@@ -31,8 +31,8 @@ def test():
 
     # Postive class: those input vectors for which y_xor is +1
     # Negative class: those input vectors for which y_xor is -1
-    postive_vectors = x[y_xor==1]
-    negative_vectors = x[y_xor==-1]
+    postive_vectors = x[y_xor == 1]
+    negative_vectors = x[y_xor == -1]
 
     # Scatter plot of both classes
     plt.scatter(
@@ -78,8 +78,8 @@ def test1():
 
     # Postive class: those input vectors for which y_xor is +1
     # Negative class: those input vectors for which y_xor is -1
-    postive_vectors = x[y_xor==1]
-    negative_vectors = x[y_xor==-1]
+    postive_vectors = x[y_xor == 1]
+    negative_vectors = x[y_xor == -1]
 
     # Scatter plot of both classes
     plt.scatter(
@@ -109,6 +109,7 @@ def test1():
 
     plt.show()
     plt.close()
+
 
 if __name__ == '__main__':
     test1()
