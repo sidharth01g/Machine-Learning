@@ -34,6 +34,7 @@ class CustomPlots(object):
         # print(z)
         z = z.reshape(xx1.shape)
         # print(z)
+        plt.figure()
 
         plt.contourf(xx1, xx2, z, alpha=0.4, cmap=cmap)
         plt.xlim(xx1.min(), xx1.max())
