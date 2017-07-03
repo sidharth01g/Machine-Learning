@@ -25,6 +25,14 @@ class Example(object):
         df = self.get_dataframe()
         return df.values
 
+    def get_complete_rows(self):
+        df = self.get_dataframe()
+        return df.dropna()
+
+    def get_complete_columns(self):
+        df = self.get_dataframe()
+        return df.dropna(axis=1)
+
 
 def run_example():
     ex = Example()
@@ -44,6 +52,11 @@ def run_example():
     print("Printing values as underlying array:")
     values_ = ex.get_values()
     print(values_, "\n")
+
+    print("Printing complete rows only:")
+    comp_rows = ex.get_complete_rows()
+    print(comp_rows)
+
 
 
 if __name__ == "__main__":
