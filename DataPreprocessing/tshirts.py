@@ -67,6 +67,7 @@ class Example(object):
             transform using one-hot encoding
 
         """
+        # X: array of feature vectors from the dataframe
         X = self.df[:].values
         le = LabelEncoder()
 
@@ -82,9 +83,10 @@ class Example(object):
         print(X, '\n')
 
         ohe = OneHotEncoder(categorical_features=feature_indices_list)
-        transformed = ohe.fit_transform(X)
-        # print("Transformed:\n", transformed, '\n')
-        transformed_feature_vectors = transformed.toarray()
+        transformed_sparse_matrix = ohe.fit_transform(X)
+        print("Transformed (sparse matrix):\n")
+        print(transformed_sparse_matrix, '\n')
+        transformed_feature_vectors = transformed_sparse_matrix.toarray()
         return transformed_feature_vectors
 
     @staticmethod
