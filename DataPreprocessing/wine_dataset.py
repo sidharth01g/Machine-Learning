@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import shutil
 
+from sklearn.cross_validation import train_test_split
+
 
 class WineExample(object):
 
@@ -11,12 +13,15 @@ class WineExample(object):
             'https://archive.ics.uci.edu/ml/machine-learning-databases/'
             + 'wine/wine.data')
         self.df = None
+        self.class_label_string = 'Class label'
 
-        self.local_cache_foldername = '.cache'
-        self.cache_filename = 'wine.pkl'
-
+        # Program path
         self.program_path = os.path.abspath(__file__)
         self.program_dir_path = os.path.dirname(self.program_path)
+
+        # Cache path variables
+        self.local_cache_foldername = '.cache'
+        self.cache_filename = 'wine.pkl'
         self.cache_dir_path = os.path.abspath(
             self.program_dir_path + '/' + self.local_cache_foldername
         )
@@ -24,7 +29,6 @@ class WineExample(object):
             self.cache_dir_path + '/' + self.cache_filename
         )
 
-        self.class_label_string = 'Class label'
 
     def fetch_data(self):
         if os.path.exists(self.cache_file_path):
@@ -61,6 +65,8 @@ class WineExample(object):
         if os.path.exists(self.cache_dir_path):
             print("Removing cache folder:", self.cache_dir_path)
             shutil.rmtree(self.cache_dir_path)
+        else:
+            print("Warning: Cache already empty")
 
 
 
@@ -68,7 +74,22 @@ def test():
     wine = WineExample()
     wine.fetch_data()
     print('Class labels: ', np.unique(wine.df[wine.class_label_string]), '\n')
-    # wine.clear_cache()
+
+    """
+    print("Head:\n")
+    print(wine.df.head(), '\n')
+    """
+
+    X = wine.df.iloc[:, 1:].values
+    y = wine.df.iloc[:, 0].values
+
+    # Partition into training and testing samples
+    (X_train, X_test, y_train, y_test) = train_test_split(
+        X, y, test_size=0.3, random_state=0
+    )
+
+    print("Training set shape:", X_train.shape)
+    print("Tesing set shape:", X_test.shape, '\n')
 
 
 if __name__ == '__main__':
