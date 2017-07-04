@@ -63,8 +63,5 @@ def run_example():
     print(imputed_data, '\n')
 
 
-
-
-
 if __name__ == "__main__":
     run_example()
