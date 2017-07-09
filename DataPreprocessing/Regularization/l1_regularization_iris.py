@@ -21,7 +21,6 @@ def test():
     X_test_std = ss.transform(X_test)
 
     # Use logistic regression with a regularization parameter C=1/lambda
-
     c_generator = (10**i for i in range(-3, 3))
     print(type(c_generator))
 
