@@ -94,9 +94,10 @@ def test():
 
     # Use logistic regression with a regularization parameter C=1/lambda
     c_generator = (10**i for i in range(-3, 3))
-    print(type(c_generator))
 
     for c in c_generator:
+        print('\n')
+        print('='*100)
         lr = LogisticRegression(penalty='l1', C=c)
         lr.fit(X_train_std, y_train)
 
@@ -105,6 +106,13 @@ def test():
         print("C = %s, lambda = %s" % (str(c), str(1.0/c)))
         print("Training accuracy: ", train_set_accuracy)
         print("Test accuracy:", test_set_accuracy, '\n\n')
+
+        print("Intercepts:")
+        print(lr.intercept_, '\n')
+
+        print("Logistic regression optimized weights:")
+        print(lr.coef_, '\n')
+
 
 
 if __name__ == '__main__':
