@@ -15,7 +15,6 @@ def heading(text, character='='):
     print(character * len(text))
 
 
-
 def test():
     np.set_printoptions(suppress=True)
     wine = WineExample()
