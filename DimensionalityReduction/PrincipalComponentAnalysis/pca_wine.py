@@ -45,7 +45,7 @@ def test():
     eigen_values_sum = sum(eigen_values)
     variance_explained_ratios = [
         (eigen_value / eigen_values_sum) for eigen_value in sorted(
-            eigen_values, reverse=True
+            eigen_values, reverse=True  # descending order
         )
     ]
     variance_explained_ratios_cumulative = np.cumsum(variance_explained_ratios)
@@ -75,9 +75,27 @@ def test():
     plt.xlabel('Pricipal components index')
     plt.legend(loc='best')
     plt.grid()
-    plt.show()
+    # plt.show()
 
+    # Contruct Eigen pairs as a list of (eigen_value, eigen_vector) tuples
+    eigen_pairs = [
+        (np.abs(eigen_values[i]), eigen_vectors[:, i]) for i in range(
+            len(eigen_values)
+        )
+    ]
 
+    # Sort Eigen pairs in the asceding order of Eigen values
+    eigen_pairs.sort(reverse=True)
+
+    # Consider two principal components (2 highest Eigen values) out of 13
+    w_pc1 = eigen_pairs[0][1][:, np.newaxis]
+    w_pc2 = eigen_pairs[2][1][:, np.newaxis]
+
+    # Create the projection matrix by stacking the pricipal Eigen vectors
+    # horizontally
+    w = np.hstack((w_pc1, w_pc2))
+    print('\nProjection matrix:')
+    pp.pprint(w)
 
 
 if __name__ == '__main__':
