@@ -91,7 +91,7 @@ def test():
     w_pc1 = eigen_pairs[0][1][:, np.newaxis]
     w_pc2 = eigen_pairs[2][1][:, np.newaxis]
 
-    # Create the projection matrix by stacking the pricipal Eigen vectors
+    # Create the projection matrix 'w' by stacking the pricipal Eigen vectors
     # horizontally
     w = np.hstack((w_pc1, w_pc2))
     print('\nProjection matrix:')
