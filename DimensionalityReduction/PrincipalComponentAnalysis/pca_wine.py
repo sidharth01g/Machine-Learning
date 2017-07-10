@@ -75,7 +75,7 @@ def test():
     plt.xlabel('Pricipal components index')
     plt.legend(loc='best')
     plt.grid()
-    # plt.show()
+    plt.show()
 
     # Contruct Eigen pairs as a list of (eigen_value, eigen_vector) tuples
     eigen_pairs = [
