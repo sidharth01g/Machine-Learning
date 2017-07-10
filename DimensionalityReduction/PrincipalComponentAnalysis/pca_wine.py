@@ -6,6 +6,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
+def heading(text, character='='):
+    if type(text) is not str:
+        heading('<INVALID_HEADING>')
+
+    print(text)
+    print(character * len(text))
+
+
+
 def test():
     np.set_printoptions(suppress=True)
     wine = WineExample()
@@ -24,21 +33,21 @@ def test():
     X_train_std = sc.transform(X_train)
     # X_test_std = sc.transform(X_test)
 
-    print("\nShape of standardized input vectors array:")
+    heading("\nShape of standardized input vectors array:")
     pp.pprint(X_train_std.shape)
 
     # Compute the covariance matrix for X_train_std
     covariance_matrix = np.cov(X_train_std.T)
-    print("\nCovariance matrix of standardized feature vectors:")
+    heading("\nCovariance matrix of standardized feature vectors:")
     pp.pprint(covariance_matrix)
 
     # Compute Eigen values and Eigen vectors
     (eigen_values, eigen_vectors) = np.linalg.eig(covariance_matrix)
 
-    print('\nEigen values of the covariance matrix:')
+    heading('\nEigen values of the covariance matrix:')
     pp.pprint(eigen_values)
 
-    print('\nEigen vectors of the covariance matrix:')
+    heading('\nEigen vectors of the covariance matrix:')
     pp.pprint(eigen_vectors)
 
     # Compute the "variance explained ratios"
@@ -50,10 +59,10 @@ def test():
     ]
     variance_explained_ratios_cumulative = np.cumsum(variance_explained_ratios)
 
-    print("\nSum of Eigen values: ", eigen_values_sum)
-    print('\nVariance explained ratios:')
+    heading("\nSum of Eigen values: ", eigen_values_sum)
+    heading('\nVariance explained ratios:')
     pp.pprint(variance_explained_ratios)
-    print("\nCumulative variance explained ratios:")
+    heading("\nCumulative variance explained ratios:")
     pp.pprint(variance_explained_ratios_cumulative)
 
     plt.bar(
@@ -94,7 +103,7 @@ def test():
     # Create the projection matrix 'w' by stacking the pricipal Eigen vectors
     # horizontally
     w = np.hstack((w_pc1, w_pc2))
-    print('\nProjection matrix:')
+    heading('\nProjection matrix:')
     pp.pprint(w)
 
 
