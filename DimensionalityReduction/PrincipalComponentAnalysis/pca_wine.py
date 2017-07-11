@@ -10,7 +10,7 @@ def heading(text, character='='):
     if type(text) is not str:
         heading('<INVALID_HEADING>')
         return
-
+    print('\n')
     print(text)
     print(character * len(text))
 
@@ -105,6 +105,36 @@ def test():
     w = np.hstack((w_pc1, w_pc2))
     heading('\nProjection matrix:')
     pp.pprint(w)
+
+    heading('Matrix shapes:')
+    print('X_train_std: ', X_train_std.shape)
+    print('Projection matrix: ', w.shape)
+
+    # Compute PCA-reduced feature vectors by computing dot product of the
+    # d-dimensional vectors with the projection matrix
+    X_train_reduced = X_train_std.dot(w)
+    heading('Dimensionality-reduced feature vectors: ')
+    pp.pprint(X_train_reduced)
+
+    # Plot the reduced 2d feature vectors
+    class_settings = [
+        (1, 'r', 's'),
+        (2, 'b', 'x'),
+        (3, 'g', 'o')
+    ]
+
+    for (class_index, color, marker) in class_settings:
+        plt.scatter(
+            X_train_reduced[y_train==class_index, 0],
+            X_train_reduced[y_train==class_index, 1],
+            c=color,
+            label=class_index,
+            marker=marker
+        )
+    plt.xlabel("Principal component 1")
+    plt.ylabel("Principal component 2")
+    plt.legend(loc='best')
+    plt.show()
 
 
 if __name__ == '__main__':
