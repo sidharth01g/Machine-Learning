@@ -50,12 +50,26 @@ def test():
     d = X_train_std.shape[1]
     s_w = np.zeros((d, d))
 
+    """
+    # The following loops do not scale the individual within-class scatter
+    # matrices by the number of features in that class
     for label, class_mean in zip(class_labels, class_means):
 
         for x in X_train_std[y_train == label]:
             X_train_std_zero_mean = x - class_mean[label]
             X_train_std_zero_mean_t = X_train_std_zero_mean.reshape(d, 1)
             s_w += X_train_std_zero_mean_t.dot(X_train_std_zero_mean_t.T)
+    """
+
+    # The total within-class scatter matrix = sum of covariance matrices
+    # if scaled
+    for label, class_mean in zip(class_labels, class_means):
+
+        class_scatter_matrix = np.cov(X_train_std[y_train == label].T)
+        s_w += class_scatter_matrix
+        heading("Class %s within-class scatter matrix: " % str(label))
+        pp.pprint(class_scatter_matrix)
+        print('Shape', class_scatter_matrix.shape)
 
     heading('Within-class scatter matrix (Sw): ')
     pp.pprint(s_w)
