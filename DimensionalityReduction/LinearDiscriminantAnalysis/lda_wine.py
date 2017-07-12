@@ -75,6 +75,27 @@ def test():
     pp.pprint(s_w)
     print('\nShape: ', s_w.shape)
 
+    # Initialize between-class scatter matrix to zeros
+    s_b = np.zeros((d, d))
+
+    # Mean vector of all the training samples
+    global_mean = np.sum(X_train_std, axis=0)
+    global_mean = global_mean.reshape((d, 1))
+    heading('Mean of all training features: (zero if standard-scaled)')
+    pp.pprint(global_mean)
+    print('Shape: ', global_mean.shape)
+
+    # Compute the between-class scatter matrix
+    for label, class_mean in zip(class_labels, class_means):
+        class_mean = class_mean.reshape((d, 1))
+        mean_diff = class_mean - global_mean
+        class_count = X_train_std[y_train == label].shape[0]
+        s_b += class_count * mean_diff.dot(mean_diff.T)
+
+    heading('Between-class scatter matrix:')
+    pp.pprint(s_b)
+    print('Shape: ', s_b.shape)
+
 
 if __name__ == '__main__':
     test()
