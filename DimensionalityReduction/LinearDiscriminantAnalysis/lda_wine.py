@@ -96,6 +96,20 @@ def test():
     pp.pprint(s_b)
     print('Shape: ', s_b.shape)
 
+    s_x = np.linalg.inv(s_w).dot(s_b)
+
+    # Compute the Eigen values and Eigen vectors of s_x
+    (eigen_values, eigen_vectors) = np.linalg.eig(s_x)
+    heading('Eigen values, eigen vectors of s_x:')
+    for eigen_value, eigen_vector in zip(eigen_values, eigen_vectors):
+        print(np.abs(eigen_value))
+        print(eigen_vector, '\n')
+
+    eigen_pairs = [
+        (np.abs(eigen_value), eigen_vector) for eigen_value, eigen_vector in (
+            zip(eigen_values, eigen_vectors))
+    ]
+
 
 if __name__ == '__main__':
     test()
