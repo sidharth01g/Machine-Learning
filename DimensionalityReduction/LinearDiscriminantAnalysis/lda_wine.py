@@ -1,10 +1,7 @@
 from datasets_custom import WineExample
 import matplotlib.pyplot as plt
 import numpy as np
-import plots
 import pprint as pp
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -34,7 +31,7 @@ def test():
     sc = StandardScaler()
     sc.fit(X_train)
     X_train_std = sc.transform(X_train)
-    X_test_std = sc.transform(X_test)
+    # X_test_std = sc.transform(X_test)
 
     class_labels = np.unique(wine.df.iloc[:, 0])
     class_means = []
@@ -111,12 +108,12 @@ def test():
     ]
 
     heading('Listing absolute values of Eigen values: ')
-    eigen_pairs = sorted(
+    eigen_pairs_sorted = sorted(
         eigen_pairs,
         key=lambda k: k[0],
         reverse=True
     )
-    pp.pprint(eigen_pairs)
+    pp.pprint(eigen_pairs_sorted)
 
     # pp.pprint(eigen_values)
     # pp.pprint(eigen_values.real)
@@ -148,6 +145,34 @@ def test():
     plt.legend(loc='best')
     plt.grid()
     plt.show()
+
+    # The non-zero Eigne values discriminability ratio must add up to 1
+    # (almost: cut off = 99%)
+    cutoff = 0.99
+    i = 0
+
+    while True:
+        i += 1
+        if cumulative_discriminability[i] > cutoff:
+            break
+
+    eigen_values_count = i + 1
+
+    w = np.hstack(
+        (eigen_pairs_sorted[i][1].reshape(d, 1)) for i in range(
+            eigen_values_count)
+    )
+
+    heading('Transformation matrix: ')
+    pp.pprint(w)
+    print('Shape: ', w.shape)
+
+    # Compute dimensionality-reduced feature vectors
+    X_train_std_reduced = X_train_std.dot(w)
+
+    heading('Dimensionality-reduced feature vectors: ')
+    pp.pprint(X_train_std_reduced)
+    print('Shape: ', X_train_std_reduced.shape)
 
 
 if __name__ == '__main__':
