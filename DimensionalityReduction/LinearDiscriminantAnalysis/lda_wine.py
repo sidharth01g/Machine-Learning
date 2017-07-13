@@ -110,6 +110,45 @@ def test():
             zip(eigen_values, eigen_vectors))
     ]
 
+    heading('Listing absolute values of Eigen values: ')
+    eigen_pairs = sorted(
+        eigen_pairs,
+        key=lambda k: k[0],
+        reverse=True
+    )
+    pp.pprint(eigen_pairs)
+
+    # pp.pprint(eigen_values)
+    # pp.pprint(eigen_values.real)
+    eigen_value_total = sum(eigen_values.real)
+    discriminability = [
+        (eig_val/eigen_value_total) for eig_val in sorted(
+            eigen_values.real,
+            reverse=True
+        )
+    ]
+    cumulative_discriminability = np.cumsum(discriminability)
+
+    plt.bar(
+        range(1, d + 1),
+        discriminability,
+        alpha=0.5,
+        align='center',
+        label='Discriminability of individual linear discriminants'
+    )
+    plt.step(
+        range(1, d + 1),
+        cumulative_discriminability,
+        alpha=0.5,
+        where='mid',
+        label='Cumulative discriminability'
+    )
+    plt.xlabel('Linear discriminants')
+    plt.ylabel('Discriminalbility ratio')
+    plt.legend(loc='best')
+    plt.grid()
+    plt.show()
+
 
 if __name__ == '__main__':
     test()
