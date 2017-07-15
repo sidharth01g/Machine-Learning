@@ -168,11 +168,29 @@ def test():
     print('Shape: ', w.shape)
 
     # Compute dimensionality-reduced feature vectors
-    X_train_std_reduced = X_train_std.dot(w)
+    X_train_reduced_lca = X_train_std.dot(w)
 
     heading('Dimensionality-reduced feature vectors: ')
-    pp.pprint(X_train_std_reduced)
-    print('Shape: ', X_train_std_reduced.shape)
+    pp.pprint(X_train_reduced_lca)
+    print('Shape: ', X_train_reduced_lca.shape)
+
+    # Plot the feature vectors
+    colors = ['r', 'b', 'g']
+    markers = ['s', 'x', 'o']
+
+    if X_train_reduced_lca.shape[1] == 2:
+        for label, color, marker in zip(np.unique(y_train), colors, markers):
+            plt.scatter(
+                X_train_reduced_lca[y_train == label, 0],
+                X_train_reduced_lca[y_train == label, 1],
+                c=color,
+                label=label,
+                marker=marker
+            )
+    plt.xlabel('Linear Discriminant 1')
+    plt.ylabel('Linear Discriminant 2')
+    plt.legend(loc='best')
+    plt.show()
 
 
 if __name__ == '__main__':
