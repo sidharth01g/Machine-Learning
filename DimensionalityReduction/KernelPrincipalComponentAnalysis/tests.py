@@ -40,7 +40,7 @@ def test():
     pp.pprint(X_train_std)
     print('Shape: ', X_train_std.shape)
 
-    squared_distances = pdist(X, 'sqeuclidean')
+    squared_distances = pdist(X_train_std, 'sqeuclidean')
     heading('Pairwise squared Eclidean distances:')
     pp.pprint(squared_distances)
     print('Shape: ', squared_distances.shape)
