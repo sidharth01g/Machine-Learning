@@ -7,8 +7,8 @@ import shutil
 class RemoteDataLoader(object):
 
     def __init__(self, dataset_url):
-        if not dataset_url:
-            raise Exception('URL not specified')
+        if type(dataset_url) is not str:
+            raise TypeError('URL not a string')
 
         self.dataset_url = dataset_url
         self.df = None
@@ -19,7 +19,7 @@ class RemoteDataLoader(object):
 
         # Create hash values for URL. Generate cache file names based on the
         # URL hash values
-        hash_obj = hashlib.sha1(self.dataset_url)
+        hash_obj = hashlib.sha1(self.dataset_url.encode('utf-8'))
         hash_value = hash_obj.hexdigest()
 
         self.local_cache_foldername = '.cache'
@@ -55,3 +55,12 @@ class RemoteDataLoader(object):
 
     def get_dataframe(self):
         return self.df
+
+
+def heading(text, character='='):
+    if type(text) is not str:
+        heading('<INVALID_HEADING>')
+        return
+    print('\n')
+    print(text)
+    print(character * len(text))
