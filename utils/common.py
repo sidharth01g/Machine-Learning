@@ -31,13 +31,13 @@ class RemoteDataLoader(object):
             self.cache_dir_path + '/' + self.cache_filename
         )
 
-    def fetch_data(self):
+    def fetch_data(self, header=None):
         if os.path.exists(self.cache_file_path):
             print("Loading data from cache:", self.cache_file_path)
             self.df = pd.read_pickle(self.cache_file_path)
         else:
             print("Fetching data from %s..\n" % self.dataset_url)
-            self.df = pd.read_csv(self.dataset_url, header=None)
+            self.df = pd.read_csv(self.dataset_url, header=header)
 
             if not os.path.exists(self.cache_dir_path):
                 print("Creating directory:", self.cache_dir_path)
