@@ -64,3 +64,7 @@ def heading(text, character='='):
     print('\n')
     print(text)
     print(character * len(text))
+
+
+def show_error(message):
+    return 'ERROR: ' + str(message)
