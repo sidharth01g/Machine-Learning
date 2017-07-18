@@ -1,5 +1,3 @@
-# This program is not performing well. Need to debug
-
 import os
 import sys
 
