@@ -29,7 +29,6 @@ class WineExample(object):
             self.cache_dir_path + '/' + self.cache_filename
         )
 
-
     def fetch_data(self):
         if os.path.exists(self.cache_file_path):
             print("Loading data from cache:", self.cache_file_path)
@@ -69,7 +68,6 @@ class WineExample(object):
             shutil.rmtree(self.cache_dir_path)
         else:
             print("Warning: Cache already empty")
-
 
 
 def test():
