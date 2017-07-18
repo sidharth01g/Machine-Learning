@@ -54,10 +54,12 @@ class WineExample(object):
                 'Proline'
             ]
 
+
             if not os.path.exists(self.cache_dir_path):
                 print("Creating directory:", self.cache_dir_path)
                 os.makedirs(self.cache_dir_path)
 
+            if not os.path.exists(self.cache_file_path):
                 print("Creating cache:", self.cache_file_path)
                 self.df.to_pickle(self.cache_file_path)
 
