@@ -104,9 +104,9 @@ def main():
 
     for index, (train, test) in enumerate(kfold):
         heading('Fold: %s' % str(index))
-        print('Training set:')
+        print('Training feature vector indices:')
         pp.pprint(train)
-        print('Testing set:')
+        print('Testing feature vector indices:')
         pp.pprint(test)
         pipeline_lr.fit(X_train[train], y_train[train])
         score = pipeline_lr.score(X_train[test], y_train[test])
