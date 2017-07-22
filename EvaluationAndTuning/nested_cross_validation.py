@@ -168,13 +168,13 @@ def main():
         y_train,
         scoring='accuracy',
         cv=k_outer,
-        n_jobs=1
+        n_jobs=-1
     )
 
     heading(
         'SVM grid_search on  X_train WITH NESTED k-fold cross validation '
         + '(k_outer = %s, k_inner = %s)' % (str(k_outer), str(k_inner)))
-    pp.pprint(scores_svm)
+    print('Best scores for outer folds: ', scores_svm)
     pp.pprint(scores_svm.shape)
 
     scores_decision_tree = cross_val_score(
@@ -183,21 +183,21 @@ def main():
         y_train,
         scoring='accuracy',
         cv=k_outer,
-        n_jobs=1
+        n_jobs=-1
     )
 
     heading(
         'Decision Tree grid_search on  X_train WITH NESTED '
         + 'k-fold cross validation '
         + '(k_outer = %s, k_inner = %s)' % (str(k_outer), str(k_inner)))
-    pp.pprint(scores_decision_tree)
+    print('Best scores for outer folds: ', scores_decision_tree)
     pp.pprint(scores_decision_tree.shape)
 
     # Compute mean cross_validation scores
     mean_score_svm = np.mean(scores_svm)
     mean_score_decision_tree = np.mean(scores_decision_tree)
 
-    heading('Mean sores:')
+    heading('Mean values of best scores of NESTED cross-validation:')
     print('Support Vector Machine: ', mean_score_svm)
     print('Decision Tree:', mean_score_decision_tree)
     heading('')
