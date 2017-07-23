@@ -43,8 +43,8 @@ class RemoteDataLoader(object):
                 print("Creating directory:", self.cache_dir_path)
                 os.makedirs(self.cache_dir_path)
 
-                print("Creating cache:", self.cache_file_path)
-                self.df.to_pickle(self.cache_file_path)
+            print("Creating cache:", self.cache_file_path)
+            self.df.to_pickle(self.cache_file_path)
 
     def clear_cache(self):
         if os.path.exists(self.cache_dir_path):
