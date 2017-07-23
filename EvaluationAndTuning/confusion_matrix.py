@@ -8,15 +8,15 @@ sys.path.insert(0, parent_dir)
 import numpy as np
 import pprint as pp
 
-
-from sklearn.cross_validation import StratifiedKFold
-from sklearn.cross_validation import train_test_split
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+from sklearn.metrics import make_scorer
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
 from utils.common import heading
 from utils.common import show_error
@@ -50,20 +50,6 @@ def get_data():
     return (X_train, X_test, y_train, y_test)
 
 
-def get_fitted_pipeline_lr(X_train, y_train):
-
-    pipeline_lr = Pipeline(
-        [
-            ('scaler', StandardScaler()),
-            ('pca', PCA(n_components=2)),
-            ('classifier', LogisticRegression(random_state=1))
-        ]
-    )
-
-    pipeline_lr.fit(X_train, y_train)
-    return pipeline_lr
-
-
 def main():
 
     np.set_printoptions(threshold=np.nan)
@@ -84,37 +70,23 @@ def main():
     pp.pprint(y_train)
     print('Shape: ', y_train.shape)
 
-    try:
-        pipeline_lr = get_fitted_pipeline_lr(X_train, y_train)
-    except Exception as error:
-        show_error('Fitting pipeline failed')
-        heading('Exception Trace:')
-        raise error
-
-    kfold = StratifiedKFold(
-        y=y_train,
-        n_folds=10,
-        random_state=123
+    pipeline = Pipeline(
+        [
+            ('scaler', StandardScaler()),
+            ('classifier', SVC(random_state=1))
+        ]
     )
 
-    heading('KFold:')
-    pp.pprint(kfold)
+    pipeline.fit(X_train, y_train)
+    y_predict = pipeline.predict(X_test)
 
-    scores = []
+    conf_matrix = confusion_matrix(y_true=y_test, y_pred=y_predict)
 
-    for index, (train, test) in enumerate(kfold):
-        heading('Fold: %s' % str(index))
-        print('Training feature vector indices:')
-        pp.pprint(train)
-        print('Testing feature vector indices:')
-        pp.pprint(test)
-        pipeline_lr.fit(X_train[train], y_train[train])
-        score = pipeline_lr.score(X_train[test], y_train[test])
-        scores.append(score)
-        print(
-            'Class dis %s\n' % np.bincount(y_train[train])
-            + 'Score: %.3f' % score
-        )
+    heading('Confusion Matrix:')
+    pp.pprint(conf_matrix)
+
+    scorer = make_scorer(f1_score, pos_label=0)
+    print(scorer)
 
 
 if __name__ == '__main__':

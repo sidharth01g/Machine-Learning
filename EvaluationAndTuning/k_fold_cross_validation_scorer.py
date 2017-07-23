@@ -9,10 +9,10 @@ import numpy as np
 import pprint as pp
 
 
-from sklearn.cross_validation import StratifiedKFold
-from sklearn.cross_validation import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import LabelEncoder
@@ -91,30 +91,16 @@ def main():
         heading('Exception Trace:')
         raise error
 
-    kfold = StratifiedKFold(
+    scores = cross_val_score(
+        estimator=pipeline_lr,
+        X=X_train,
         y=y_train,
-        n_folds=10,
-        random_state=123
+        cv=10,
+        n_jobs=-1
     )
 
-    heading('KFold:')
-    pp.pprint(kfold)
-
-    scores = []
-
-    for index, (train, test) in enumerate(kfold):
-        heading('Fold: %s' % str(index))
-        print('Training feature vector indices:')
-        pp.pprint(train)
-        print('Testing feature vector indices:')
-        pp.pprint(test)
-        pipeline_lr.fit(X_train[train], y_train[train])
-        score = pipeline_lr.score(X_train[test], y_train[test])
-        scores.append(score)
-        print(
-            'Class dis %s\n' % np.bincount(y_train[train])
-            + 'Score: %.3f' % score
-        )
+    heading('Crossvalidation scores:')
+    pp.pprint(scores)
 
 
 if __name__ == '__main__':

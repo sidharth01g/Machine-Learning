@@ -5,14 +5,15 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
 sys.path.insert(0, parent_dir)
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pprint as pp
 
 
-from sklearn.cross_validation import StratifiedKFold
-from sklearn.cross_validation import train_test_split
 from sklearn.decomposition import PCA
+from sklearn.learning_curve import learning_curve
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import LabelEncoder
@@ -84,37 +85,77 @@ def main():
     pp.pprint(y_train)
     print('Shape: ', y_train.shape)
 
-    try:
-        pipeline_lr = get_fitted_pipeline_lr(X_train, y_train)
-    except Exception as error:
-        show_error('Fitting pipeline failed')
-        heading('Exception Trace:')
-        raise error
-
-    kfold = StratifiedKFold(
-        y=y_train,
-        n_folds=10,
-        random_state=123
+    pipeline_lr = Pipeline(
+        [
+            ('scaler', StandardScaler()),
+            ('classifier', LogisticRegression(
+                penalty='l2',
+                random_state=123
+            ))
+        ]
     )
 
-    heading('KFold:')
-    pp.pprint(kfold)
+    train_sizes = np.linspace(0.1, 1.0, 10)
+    (train_sizes, train_scores, test_scores) = learning_curve(
+        estimator=pipeline_lr,
+        X=X_train,
+        y=y_train,
+        train_sizes=train_sizes,
+        cv=10,
+        n_jobs=-1
+    )
+    heading('train_sizes')
+    pp.pprint(train_sizes)
+    pp.pprint(train_sizes.shape)
+    heading('train_scores')
+    pp.pprint(train_scores)
+    pp.pprint(train_scores.shape)
+    heading('test_scores')
+    pp.pprint(test_scores)
+    pp.pprint(test_scores.shape)
 
-    scores = []
+    train_mean = np.mean(train_scores, axis=1)
+    heading('train_mean')
+    pp.pprint(train_mean)
 
-    for index, (train, test) in enumerate(kfold):
-        heading('Fold: %s' % str(index))
-        print('Training feature vector indices:')
-        pp.pprint(train)
-        print('Testing feature vector indices:')
-        pp.pprint(test)
-        pipeline_lr.fit(X_train[train], y_train[train])
-        score = pipeline_lr.score(X_train[test], y_train[test])
-        scores.append(score)
-        print(
-            'Class dis %s\n' % np.bincount(y_train[train])
-            + 'Score: %.3f' % score
-        )
+    train_std = np.std(train_scores, axis=1)
+    heading('train_std')
+    pp.pprint(train_std)
+
+    test_mean = np.mean(test_scores, axis=1)
+    heading('test_mean')
+    pp.pprint(test_mean)
+
+    test_std = np.std(test_scores, axis=1)
+    heading('test_std')
+    pp.pprint(test_std)
+
+    plt.plot(train_sizes, train_mean, color='blue', marker='o', markersize=5,
+             label='Training accuracy')
+    plt.fill_between(
+        train_sizes,
+        train_mean + train_std,
+        train_mean - train_std,
+        alpha=0.15,
+        color='blue'
+    )
+
+    plt.plot(train_sizes, test_mean, color='green', marker='s', markersize=5,
+             linestyle='--', label='Validation accuracy')
+    plt.fill_between(
+        train_sizes,
+        test_mean + test_std,
+        test_mean - test_std,
+        alpha=0.15,
+        color='green'
+    )
+
+    plt.xlabel('Number of training samples')
+    plt.ylabel('Accuracy')
+    plt.legend(loc='best')
+
+
+    plt.show()
 
 
 if __name__ == '__main__':
