@@ -9,6 +9,8 @@ import numpy as np
 import pprint as pp
 
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+from sklearn.metrics import make_scorer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
@@ -82,6 +84,9 @@ def main():
 
     heading('Confusion Matrix:')
     pp.pprint(conf_matrix)
+
+    scorer = make_scorer(f1_score, pos_label=0)
+    print(scorer)
 
 
 if __name__ == '__main__':
