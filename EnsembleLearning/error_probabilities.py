@@ -47,7 +47,7 @@ def main():
         error_probabilities,
         ensemble_errors,
         error_probabilities,
-        where=(ensemble_errors > error_probabilities),
+        where=(ensemble_errors < error_probabilities),
         alpha=0.25,
         facecolor='green',
         interpolate=True
