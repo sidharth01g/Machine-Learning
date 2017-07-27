@@ -1,6 +1,8 @@
 import hashlib
+import math
 import os
 import pandas as pd
+import scipy.misc
 import shutil
 
 
@@ -68,3 +70,17 @@ def heading(text, character='='):
 
 def show_error(message):
     return 'ERROR: ' + str(message)
+
+
+def ensemble_error(n_classifers, error_probability):
+    k_start = math.ceil(n_classifers / 2)
+
+    # Probabilites generator
+    probabilities = (
+        scipy.misc.comb(n_classifers, k)
+        * error_probability**k
+        * (1.0 - error_probability)**(n_classifers - k)
+        for k in range(k_start, n_classifers + 1)
+    )
+
+    return sum(probabilities)
