@@ -3,3 +3,4 @@ pandas
 matplotlib
 pip install -U scipy
 pip install -U scikit-learn
+pip install pyprind
