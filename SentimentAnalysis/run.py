@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import pprint as pp
 import pyprind
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
 import sys
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -14,7 +16,7 @@ from utils.common import heading
 
 class MovieData(object):
 
-    def __init__(self, n_reviews):
+    def __init__(self, n_reviews=50000):
         self.n_reviews = n_reviews
         self.dataset_categories = ['test', 'train']
         self.root_dirname = 'aclImdb'
@@ -75,8 +77,27 @@ def main():
     movies = MovieData(n_reviews=50000)
     print('Reading data..')
     movies.read_data()
+    review_text_array = np.asarray(movies.df.values[:, 0])
     heading('Data:')
-    pp.pprint(movies.df)
+    pp.pprint(review_text_array)
+    pp.pprint(review_text_array.shape)
+
+    # cv = CountVectorizer()
+    cv = CountVectorizer(ngram_range=(2, 2))
+    heading('Vocabulary formation')
+    cv.fit(review_text_array)
+    pp.pprint(type(cv.vocabulary_))
+    # pp.pprint(cv.vocabulary_)
+
+    heading('Bag of words generation')
+    bag = cv.transform(review_text_array)
+    pp.pprint(bag)
+
+    # Term frequency-inverse document frequency
+    heading('tfidf_array generation')
+    tf_idf = TfidfTransformer()
+    tfidf_array = tf_idf.fit_transform(bag)
+    pp.pprint(tfidf_array)
 
 
 if __name__ == '__main__':
