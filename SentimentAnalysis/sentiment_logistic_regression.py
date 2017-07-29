@@ -124,28 +124,25 @@ def main():
     pp.pprint(review_text_array)
     pp.pprint(review_text_array.shape)
 
-    """
     # Clean up review text
     heading('Cleaning up review text')
     movies.df['review'] = movies.df['review'].apply(MovieData.clean_text)
     review_text_array = np.asarray(movies.df.values[:, 0])
     pp.pprint(review_text_array)
-    """
-    """
-    print('*' * 100)
-    pp.pprint(movies.df.loc[:, 'sentiment'].values.shape)
-    pp.pprint(movies.df.loc[:, 'review'].values.shape)
-    print('*' * 100)
-    exit()
-    """
+
     (X_train, X_test, y_train, y_test) = train_test_split(
         movies.df.loc[:, 'review'].values,
         movies.df.loc[:, 'sentiment'].values,
-        train_size=0.1,
+        train_size=0.5,
         random_state=1
     )
 
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    heading('Dataset sizes')
+    print('X_train: ', X_train.shape)
+    print('y_train: ', y_train.shape)
+    print('X_test: ', X_test.shape)
+    print('y_test: ', y_test.shape)
+
     stop = stopwords.words('english')
 
     vectorizer = TfidfVectorizer(
