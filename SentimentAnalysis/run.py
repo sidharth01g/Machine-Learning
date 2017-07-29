@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import pprint as pp
 import pyprind
+import re
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 import sys
@@ -72,6 +73,20 @@ class MovieData(object):
         self.df = df
         return df
 
+    @staticmethod
+    def clean_text(text):
+        pattern = '<[^>]*>'
+        text = re.sub(pattern, '', text)
+
+        emoticons = re.findall(
+            '(?::|;|=)(?:-)?(?:\)|\(|D|P)',
+            text
+        )
+        text = (
+            re.sub('[\W]+', ' ', text.lower())
+            + ''.join(emoticons).replace('-', ''))
+        return text
+
 
 def main():
     movies = MovieData(n_reviews=50000)
@@ -82,6 +97,13 @@ def main():
     pp.pprint(review_text_array)
     pp.pprint(review_text_array.shape)
 
+    # Clean up review text
+    heading('Cleaning up review text')
+    movies.df['review'] = movies.df['review'].apply(MovieData.clean_text)
+    review_text_array = np.asarray(movies.df.values[:, 0])
+    pp.pprint(review_text_array)
+
+    # Vectorize reviews using count (bag of words)
     # cv = CountVectorizer()
     cv = CountVectorizer(ngram_range=(2, 2))
     heading('Vocabulary formation')
