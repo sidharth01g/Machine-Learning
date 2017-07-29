@@ -1,3 +1,6 @@
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
 import numpy as np
 import os
 import pandas as pd
@@ -87,6 +90,21 @@ class MovieData(object):
             + ''.join(emoticons).replace('-', ''))
         return text
 
+    @staticmethod
+    def tokenize(text):
+        porter = PorterStemmer()
+        return [
+            porter.stem(word) for word in text.split()
+        ]
+
+    @staticmethod
+    def remove_stopwords(tokens_list):
+        nltk.download('stopwords')
+        stop = stopwords.words('english')
+        return [
+            word for word in tokens_list if word not in stop
+        ]
+
 
 def main():
     movies = MovieData(n_reviews=50000)
@@ -102,6 +120,21 @@ def main():
     movies.df['review'] = movies.df['review'].apply(MovieData.clean_text)
     review_text_array = np.asarray(movies.df.values[:, 0])
     pp.pprint(review_text_array)
+
+    # Tokenize text
+    heading('Tokenization test')
+    text = movies.df['review'][0]
+    print('\nText:\n', text)
+    tokens = MovieData.tokenize(text)
+    print('\Tokens:\n', tokens)
+
+    # Stopwords removal test
+    heading('Stopwords removal test')
+    tokens_stop = MovieData.remove_stopwords(tokens)
+    print('\nTokens:\n', tokens)
+    print('Length: ', len(tokens))
+    print('\nTokens after Stopwords removal:\n', tokens_stop)
+    print('Length: ', len(tokens_stop))
 
     # Vectorize reviews using count (bag of words)
     # cv = CountVectorizer()
