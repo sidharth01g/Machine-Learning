@@ -32,7 +32,27 @@ class MovieDataOutOfCore(object):
             'neg': 0
         }
         self.csv_filename = 'reviews.csv'
-        nltk.download('stopwords')
+        # nltk.download('stopwords')
+        self.stop = MovieDataOutOfCore.load_stopwords()
+
+    @staticmethod
+    def load_stopwords():
+        memory_dirname = 'memory'
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = os.path.join(dir_path, memory_dirname)
+        stopwords_filepath = os.path.join(dir_path, 'stopwords.pkl')
+        if not os.path.exists(stopwords_filepath):
+            nltk.download('stopwords')
+            stop = stopwords.words('english')
+            MovieDataOutOfCore.save_object(
+                object_=stop,
+                filepath=stopwords_filepath
+            )
+        else:
+            # print('Loading stopwords from: ', stopwords_filepath)
+            stop = MovieDataOutOfCore.load_object(stopwords_filepath)
+
+        return stop
 
     @staticmethod
     def clean_text(text):
@@ -63,7 +83,7 @@ class MovieDataOutOfCore(object):
 
     @staticmethod
     def remove_stopwords(tokens_list):
-        stop = stopwords.words('english')
+        stop = MovieDataOutOfCore.load_stopwords()
         return [
             word for word in tokens_list if word not in stop
         ]
@@ -111,6 +131,16 @@ class MovieDataOutOfCore(object):
             protocol=pickle.HIGHEST_PROTOCOL
         )
 
+    @staticmethod
+    def load_object(filepath):
+        filepath = os.path.realpath(filepath)
+        dirpath = os.path.dirname(filepath)
+
+        file_ = open(filepath, 'rb')
+        object_ = pickle.load(
+            file=file_
+        )
+        return object_
 
 
 def main():
@@ -131,7 +161,6 @@ def main():
         for _, line in data:
             target.write(line)
 
-    # Get stream to randomized_csv_filepath
     print('\nGetting stream.. ', end='')
     review_stream = movies.get_stream(randomized_csv_filepath)
     print('Done')
@@ -143,62 +172,72 @@ def main():
         tokenizer=MovieDataOutOfCore.tokenize
     )
 
-    classifier = SGDClassifier(
-        loss='log',
-        random_state=1,
-        n_iter=1
-    )
+    memory_dirname = 'memory'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.join(dir_path, memory_dirname)
+    classifier_filepath = os.path.join(dir_path, 'classifier.pkl')
 
     batch_size = 1000
     train_size = 0.7
-    train_count = train_size * n_reviews
-    n_batches = int(np.ceil(train_count / batch_size))
-    classes = np.array(['0', '1'])
+    train_count = int(train_size * n_reviews)
 
-    progress_bar = pyprind.ProgBar(n_batches)
+    if not os.path.exists(classifier_filepath):
+        # Train a loggistic regression classifier and pickle it
 
-    heading('Partial-fitting the classifer batchwise')
-
-    count = -1
-
-    for _ in range(n_batches):
-        (reviews, labels) = movies.get_batch(
-            stream=review_stream,
-            size=batch_size
+        classifier = SGDClassifier(
+            loss='log',
+            random_state=1,
+            n_iter=1
         )
 
-        # Vectorize X_train
-        X_train = hashing_vectorizer.transform(reviews)
-        y_train = labels
-        # print(y_train)
+        n_batches = int(np.ceil(train_count / batch_size))
+        classes = np.array(['0', '1'])
 
-        # Partial fit the classifier
-        classifier.partial_fit(X_train, y_train, classes=classes)
-        count += 1
-        progress_bar.update()
+        progress_bar = pyprind.ProgBar(n_batches)
 
+        heading('Partial-fitting the classifer batchwise')
+
+        count = -1
+
+        for _ in range(n_batches):
+            (reviews, labels) = movies.get_batch(
+                stream=review_stream,
+                size=batch_size
+            )
+
+            # Vectorize X_train
+            X_train = hashing_vectorizer.transform(reviews)
+            y_train = labels
+            # print(y_train)
+
+            # Partial fit the classifier
+            classifier.partial_fit(X_train, y_train, classes=classes)
+            count += 1
+            progress_bar.update()
+
+        heading('Saving')
+
+        print('Saving classifier..', end='')
+        MovieDataOutOfCore.save_object(classifier, classifier_filepath)
+        print('Done')
+    else:
+        # Load the classifier from the pickle file
+        print('\nLoading classifier from: ', classifier_filepath)
+        classifier = MovieDataOutOfCore.load_object(classifier_filepath)
+
+    print('\nGenerating testing set.. ', end='')
     (reviews_test, labels_test) = movies.get_batch(
         stream=review_stream,
-        size=(n_reviews - count)
+        size=(n_reviews - train_count)
         # size=1000
     )
 
-    print('\nGenerating testing set.. ', end='')
     X_test = hashing_vectorizer.transform(reviews_test)
     y_test = labels_test
     print('Done')
 
-    heading('Testing model')
+    heading('Testing the classifier model')
     print('Accuracy: ', classifier.score(X_test, y_test))
-
-    heading('Saving')
-    memory_dirname = 'memory'
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dir_path = os.path.join(dir_path, memory_dirname)
-    filepath = os.path.join(dir_path, 'classifier.pkl')
-    print('Saving classifier..', end='')
-    MovieDataOutOfCore.save_object(classifier, filepath)
-    print('Done')
 
 
 if __name__ == '__main__':
