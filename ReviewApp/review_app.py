@@ -29,13 +29,13 @@ def train(review_text, class_label, classifier):
         tokenizer=common.tokenize
     )
     X = hashing_vectorizer.transform([review_text])
-    classifier.partial_fit(X, [class_label])
+    classifier.partial_fit(X, [str(class_label)])
 
     return classifier
 
 
 def classify(review_text, classifier):
-    global classifier
+    # global classifier
 
     hashing_vectorizer = HashingVectorizer(
         decode_error='ignore',
@@ -99,29 +99,32 @@ def index():
 def results():
     global classifier
     form = ReviewForm(request.form)
+
     if request.method == 'POST' and form.validate():
         review = request.form['movie_review']
-    (y, probability) = classify(review_text=review, classifier=classifier)
+        (y, probability) = classify(review_text=review, classifier=classifier)
 
-    return render_template(
-        'results.html',
-        content=review,
-        prediction=y,
-        probability=round(probability * 100, 2)
-    )
+        return render_template(
+            'results.html',
+            content=review,
+            prediction=y,
+            probability=round(probability * 100, 2)
+        )
+
+    return render_template('reviewform.html', form=form)
 
 
 @app.route('/thanks', methods=['POST'])
 def feedback():
     global classifier, db_file_path
     feedback = request.form['feedback_button']
-    review = request.form['review']
+    review = request.form['movie_review']
     prediction = request.form['prediction']
 
     inv_label = {'negative': 0, 'positive': 1}
     y = inv_label[prediction]
     if feedback == 'Incorrect':
-        y = str(not(y))
+        y = str(int(not(y)))
 
     train(review_text=review, class_label=y, classifier=classifier)
 
@@ -136,13 +139,3 @@ def feedback():
 if __name__ == '__main__':
 
     app.run(debug=True)
-    """
-    print(classify('It was very good', classifier))
-    print(classify('It was very bad', classifier))
-
-    classifier = train('lame', '0', classifier)
-
-    database_entry(
-        database_file_path=db_file_path,
-        review_text='Wow', class_label='1')
-    """
