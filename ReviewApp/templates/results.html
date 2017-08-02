@@ -13,11 +13,11 @@
 <div>This review is <strong>{{ prediction }}</strong>(probability: {{ probability }}).</div>
 
 <div id='button'>
-    <form action="/thanks" method="post">
+    <form action="/thanks" method=post>
         <input type=submit value='Correct' name='feedback_button'>
         <input type=submit value='Incorrect' name='feedback_button'>
-        <input type=hidden value='{{ prediction }}' name='prediciton'>
-        <input type=hidden value='{{ content }}' name='review'>
+        <input type=hidden value='{{ prediction }}' name='prediction'>
+        <input type=hidden value='{{ content }}' name='movie_review'>
     </form>
 </div>
 
