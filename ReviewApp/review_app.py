@@ -13,6 +13,8 @@ from wtforms import Form
 from wtforms import TextAreaField
 from wtforms import validators
 
+classifier = initial.run_training()
+
 
 def train(review_text, class_label, classifier):
     hashing_vectorizer = HashingVectorizer(
@@ -69,11 +71,40 @@ def database_entry(database_file_path, review_text, class_label):
     connection.close()
 
 
+class ReviewForm(Form):
+    movie_review = TextAreaField(
+        '',
+        [
+            validators.DataRequired(),
+            validators.length(min=5)
+        ]
+    )
+
+@app.route('/')
+def index():
+    form = ReviewForm(request.form)
+    return render_template('reviewform.html', form=form)
+
+
+@app.route('/results', methods=['POST'])
+def results():
+    form = ReviewForm(request.form)
+    if request.method == 'POST' and form.validate():
+        review = request.form['movie_review']
+    (y, probability) = classify(review_text=review, classifier=classifier)
+
+    return render_template(
+        'results.html',
+        content=review,
+        prediction=y,
+        probability=round(probability * 100, 2)
+    )
+
+
 if __name__ == '__main__':
     app = Flask(__name__)
     db_filename = 'reviews.sqlite'
     table_name = 'reviews_table'
-    classifier = initial.run_training()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     db_file_path = os.path.join(dir_path, db_filename)
 
