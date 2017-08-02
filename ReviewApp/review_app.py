@@ -14,6 +14,11 @@ from wtforms import TextAreaField
 from wtforms import validators
 
 classifier = initial.run_training()
+app = Flask(__name__)
+db_filename = 'reviews.sqlite'
+table_name = 'reviews_table'
+dir_path = os.path.dirname(os.path.realpath(__file__))
+db_file_path = os.path.join(dir_path, db_filename)
 
 
 def train(review_text, class_label, classifier):
@@ -108,7 +113,7 @@ def results():
 
 @app.route('/thanks', methods=['POST'])
 def feedback():
-    global classifier
+    global classifier, db_file_path
     feedback = request.form['feedback_button']
     review = request.form['review']
     prediction = request.form['prediction']
@@ -117,19 +122,21 @@ def feedback():
     y = inv_label[prediction]
     if feedback == 'Incorrect':
         y = str(not(y))
-    classifier = train(
-        review_text=review, class_label=y, classifier=classifier)
-    return classifier
+
+    train(review_text=review, class_label=y, classifier=classifier)
+
+    database_entry(
+        database_file_path=db_file_path,
+        review_text=review,
+        class_label=y
+    )
+    return render_template('thanks.html')
 
 
 if __name__ == '__main__':
-    app = Flask(__name__)
-    db_filename = 'reviews.sqlite'
-    table_name = 'reviews_table'
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    db_file_path = os.path.join(dir_path, db_filename)
 
-    # app.run(debug=True)
+    app.run(debug=True)
+    """
     print(classify('It was very good', classifier))
     print(classify('It was very bad', classifier))
 
@@ -138,3 +145,4 @@ if __name__ == '__main__':
     database_entry(
         database_file_path=db_file_path,
         review_text='Wow', class_label='1')
+    """
