@@ -2,10 +2,7 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from sklearn.feature_extraction.text import HashingVectorizer
-import numpy as np
 import os
-import pprint as pp
-import pickle
 import sqlite3
 from utilities import common
 from utilities import initial
