@@ -30,6 +30,7 @@ def train(review_text, class_label, classifier):
 
 
 def classify(review_text, classifier):
+    global classifier
 
     hashing_vectorizer = HashingVectorizer(
         decode_error='ignore',
@@ -80,6 +81,9 @@ class ReviewForm(Form):
         ]
     )
 
+app = Flask(__name__)
+
+
 @app.route('/')
 def index():
     form = ReviewForm(request.form)
@@ -88,6 +92,7 @@ def index():
 
 @app.route('/results', methods=['POST'])
 def results():
+    global classifier
     form = ReviewForm(request.form)
     if request.method == 'POST' and form.validate():
         review = request.form['movie_review']
@@ -99,6 +104,22 @@ def results():
         prediction=y,
         probability=round(probability * 100, 2)
     )
+
+
+@app.route('/thanks', methods=['POST'])
+def feedback():
+    global classifier
+    feedback = request.form['feedback_button']
+    review = request.form['review']
+    prediction = request.form['prediction']
+
+    inv_label = {'negative': 0, 'positive': 1}
+    y = inv_label[prediction]
+    if feedback == 'Incorrect':
+        y = str(not(y))
+    classifier = train(
+        review_text=review, class_label=y, classifier=classifier)
+    return classifier
 
 
 if __name__ == '__main__':
