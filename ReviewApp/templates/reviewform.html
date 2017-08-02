@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+    <title>Review sentiment</title>
+</head>
+<body>
+    <h2>Please write a review on any movie that you watched</h2>
+    {% from "_formhelpers.html" import render_field %}
+    <form method=post action="/results">
+        <dl>
+            {{ render_field(form.movie_review, cols='30', rows='10') }}
+        </dl>
+        <div>
+            <input type=submit value='Submit review' name='submit_btn'>
+        </div>
+    </form>
+</body>
+</html>
