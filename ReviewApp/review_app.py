@@ -3,6 +3,7 @@ from flask import render_template
 from flask import request
 import numpy as np
 import os
+import pickle
 from sklearn.feature_extraction.text import HashingVectorizer
 import sqlite3
 from utilities import common
@@ -50,6 +51,37 @@ def classify(review_text, classifier):
 
     label = {'1': 'positive', '0': 'negative'}
     return (label[y], probability)
+
+
+def update_model(database_file_path, classifier, batch_size=1000):
+    # import pprint as pp
+
+    hashing_vectorizer = HashingVectorizer(
+        decode_error='ignore',
+        n_features=2**21,
+        preprocessor=None,
+        tokenizer=common.tokenize
+    )
+
+    classes = np.array(['0', '1'])
+
+    connection = sqlite3.connect(database_file_path)
+    cur = connection.cursor()
+    cur.execute('SELECT * FROM reviews_table')
+
+    while True:
+        query_result = cur.fetchmany(size=batch_size)
+        if not query_result:
+            break
+        data = np.array(query_result)
+        # pp.pprint(data)
+        text_array = data[:, 0]
+        X = hashing_vectorizer.transform(text_array)
+        y = data[:, 1]
+        classifier.partial_fit(X, y, classes=classes)
+
+    connection.close()
+    return classifier
 
 
 def database_entry(database_file_path, review_text, class_label):
@@ -135,5 +167,9 @@ def feedback():
 
 
 if __name__ == '__main__':
+    print('\nUpdating classifier.. ', end='')
+    update_model(db_file_path, classifier)
+    print('Done')
 
+    print('\nRunning application ..')
     app.run(debug=True)
