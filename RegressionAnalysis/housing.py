@@ -9,11 +9,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pprint as pp
 import seaborn as sns
-from utils.common import RemoteDataLoader
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
 from utils.common import heading
+from utils.common import RemoteDataLoader
 
 
 def run():
+    heading('Collecting data')
     url = (
         'https://archive.ics.uci.edu/ml/machine-learning-databases/housing/'
         + 'housing.data'
@@ -50,7 +53,6 @@ def run():
     sns.pairplot(
         df[cols],
     )
-    #plt.show()
 
     plt.figure()
 
@@ -68,7 +70,28 @@ def run():
         yticklabels=cols,
         xticklabels=cols
     )
-    plt.show()
+    # plt.show()
+
+    heading('Linear Regression')
+    X = df[['RM']].values
+    y = df[['MEDV']].values
+
+    X_std = StandardScaler().fit_transform(X)
+    y_std = StandardScaler().fit_transform(y)
+
+    print('X_std: ', X_std.shape)
+    print('y_std', y_std.shape)
+
+    lr = LinearRegression()
+    lr.fit(X, y)
+
+    print('\nCoefficients:')
+    pp.pprint(lr.coef_)
+    print('Intercept:')
+    pp.pprint(lr.intercept_)
+
+
+
 
 
 if __name__ == '__main__':
