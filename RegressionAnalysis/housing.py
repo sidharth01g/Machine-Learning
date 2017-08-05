@@ -15,6 +15,11 @@ from utils.common import heading
 from utils.common import RemoteDataLoader
 
 
+def lin_regplot(X, y, model):
+    plt.scatter(X, y, c='blue')
+    plt.plot(X, model.predict(X), color='red')
+
+
 def run():
     heading('Collecting data')
     url = (
@@ -89,9 +94,6 @@ def run():
     pp.pprint(lr.coef_)
     print('Intercept:')
     pp.pprint(lr.intercept_)
-
-
-
 
 
 if __name__ == '__main__':
