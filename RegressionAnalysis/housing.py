@@ -10,6 +10,7 @@ import numpy as np
 import pprint as pp
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import RANSACRegressor
 from sklearn.preprocessing import StandardScaler
 from utils.common import heading
 from utils.common import RemoteDataLoader
@@ -58,7 +59,7 @@ def run():
     sns.pairplot(
         df[cols],
     )
-
+    plt.title('Pairwise scatter plots for a few features')
     plt.figure()
 
     heading('Correlation matrix for: %s' % cols)
@@ -75,6 +76,7 @@ def run():
         yticklabels=cols,
         xticklabels=cols
     )
+    plt.title('Heatmap for scatter matrix')
     # plt.show()
 
     heading('Linear Regression')
@@ -98,7 +100,48 @@ def run():
     lin_regplot(X, y, lr)
     plt.xlabel('Average number of rooms (RM)')
     plt.ylabel('Price in $1000s (MEDV)')
+    plt.title('sklearn.linear_model.LinearRegression')
+
+    heading('RANSAC')
+    ransac = RANSACRegressor(
+        LinearRegression(),
+        max_trials=100,
+        min_samples=50,
+        residual_metric=lambda x: np.sum(np.abs(x), axis=1),
+        residual_threshold=5.0,
+        random_state=0
+    )
+    ransac.fit(X, y)
+
+    # Create masks
+    inlier_mask = ransac.inlier_mask_
+    outlier_mask = np.logical_not(inlier_mask)
+    print('\nInlier mask: ', inlier_mask.shape)
+    print('Outlier mask: ', outlier_mask.shape)
+
+    plt.figure()
+    plt.title('RANSAC: Inliers and outliers')
+    plt.xlabel('Average number of rooms (RM)')
+    plt.ylabel('Price in $1000s (MEDV)')
+    plt.scatter(
+        X[inlier_mask],
+        y[inlier_mask],
+        c='blue',
+        marker='o',
+        label='Inliers'
+    )
+
+    plt.scatter(
+        X[outlier_mask],
+        y[outlier_mask],
+        c='red',
+        marker='o',
+        label='Inliers'
+    )
+    plt.legend(loc='best')
     plt.show()
+
+
 
 if __name__ == '__main__':
     run()
