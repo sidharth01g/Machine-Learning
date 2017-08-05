@@ -94,7 +94,11 @@ def run():
     pp.pprint(lr.coef_)
     print('Intercept:')
     pp.pprint(lr.intercept_)
-
+    plt.figure()
+    lin_regplot(X, y, lr)
+    plt.xlabel('Average number of rooms (RM)')
+    plt.ylabel('Price in $1000s (MEDV)')
+    plt.show()
 
 if __name__ == '__main__':
     run()
