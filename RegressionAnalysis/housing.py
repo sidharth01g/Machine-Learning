@@ -136,11 +136,24 @@ def run():
         y[outlier_mask],
         c='red',
         marker='o',
-        label='Inliers'
+        label='Outliers'
     )
     plt.legend(loc='best')
-    plt.show()
 
+    X_max = max(X)
+    X_min = min(X)
+    regression_line_X = np.arange(X_min, X_max + 1, 1)
+    regression_line_y = ransac.predict(regression_line_X[:, np.newaxis])
+    plt.plot(
+        regression_line_X,
+        regression_line_y,
+        color='black',
+    )
+    print('\nCoefficients:')
+    pp.pprint(ransac.estimator_.coef_)
+    print('Intercept')
+    pp.pprint(ransac.estimator_.intercept_)
+    plt.show()
 
 
 if __name__ == '__main__':
