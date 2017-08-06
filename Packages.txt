@@ -7,3 +7,4 @@ pip install pyprind
 pip install nltk
 pip install flask
 pip install wtforms
+pip install seaborn
