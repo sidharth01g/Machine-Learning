@@ -31,53 +31,58 @@ def run():
 
     # Create a polynomial feature transformer
     # x -->   < 1  x  x^2  x^3  ...  x^(degree - 1) >
-    degree = 2
-    poly_transformer = PolynomialFeatures(degree=degree)
-    X_poly = poly_transformer.fit_transform(X)
 
-    heading('Data:')
-    print('\nX:')
-    pp.pprint(X)
-    pp.pprint(X.shape)
-    print('\ny:')
-    pp.pprint(y)
-    pp.pprint(y.shape)
+    degrees = [i for i in range(2, 11)]
+    for degree in degrees:
+        poly_transformer = PolynomialFeatures(degree=degree)
+        X_poly = poly_transformer.fit_transform(X)
 
-    heading('X - polynomial representaion, degree=%s' % degree)
-    pp.pprint(X_poly)
-    pp.pprint(X_poly.shape)
+        heading('Data:')
+        print('\nX:')
+        pp.pprint(X)
+        pp.pprint(X.shape)
+        print('\ny:')
+        pp.pprint(y)
+        pp.pprint(y.shape)
 
-    # LinearRegression instances
-    lr_linear = LinearRegression()
-    lr_poly = LinearRegression()
+        heading('X - polynomial representaion, degree=%s' % degree)
+        pp.pprint(X_poly)
+        pp.pprint(X_poly.shape)
 
-    print('\nFitting models.. ')
-    print('1. Linear regression model')
-    lr_linear.fit(X, y)
-    print('2. Polynomial regression model')
-    lr_poly.fit(X_poly, y)
+        # LinearRegression instances
+        lr_linear = LinearRegression()
+        lr_poly = LinearRegression()
 
-    # Create data to run prediction on
-    X_test = np.arange(
-        start=int(min(X) - 20),
-        stop=int(max(X) + 20),
-        step=1
-    )
-    X_test = X_test[:, np.newaxis]
-    X_test_poly = poly_transformer.fit_transform(X_test)
+        print('\nFitting models.. ')
+        print('1. Linear regression model')
+        lr_linear.fit(X, y)
+        print('2. Polynomial regression model')
+        lr_poly.fit(X_poly, y)
 
-    heading('Predictions:')
-    y_predict_linear = lr_linear.predict(X_test)
-    y_predict_poly = lr_poly.predict(X_test_poly)
-    pp.pprint(y_predict_linear)
-    pp.pprint(y_predict_poly)
+        # Create data to run prediction on
+        X_test = np.arange(
+            start=int(min(X) - 20),
+            stop=int(max(X) + 20),
+            step=1
+        )
+        X_test = X_test[:, np.newaxis]
+        X_test_poly = poly_transformer.fit_transform(X_test)
 
-    plt.scatter(X, y, label='Training points')
-    plt.plot(X_test, y_predict_linear, label='Linear fit')
-    plt.plot(X_test, y_predict_poly, label='Polynomial fit')
-    plt.legend(loc='best')
-    plt.xlabel('Predictor')
-    plt.ylabel('Response')
+        heading('Predictions:')
+        y_predict_linear = lr_linear.predict(X_test)
+        y_predict_poly = lr_poly.predict(X_test_poly)
+        pp.pprint(y_predict_linear)
+        pp.pprint(y_predict_poly)
+
+        plt.figure()
+        plt.scatter(X, y, label='Training points')
+        plt.plot(X_test, y_predict_linear, label='Linear fit')
+        plt.plot(X_test, y_predict_poly, label='Polynomial fit')
+        plt.legend(loc='best')
+        plt.xlabel('Predictor')
+        plt.ylabel('Response')
+        plt.title('Polynomial degree = %s' % degree)
+
     plt.show()
 
 
