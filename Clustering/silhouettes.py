@@ -103,10 +103,14 @@ def run():
         y_ticks.append((y_bottom + y_top) / 2)
         y_bottom = y_top
 
+    silhouette_value_average = np.average(silhouette_values)
+    plt.axvline(silhouette_value_average, label='Average silhouette value')
+
     plt.title('Silhouette plot')
     plt.xlabel('Silhouette value')
     plt.ylabel('Cluster')
     plt.yticks(y_ticks, cluster_labels)
+    plt.legend(loc='best')
     plt.show()
 
 
