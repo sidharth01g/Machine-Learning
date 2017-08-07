@@ -39,7 +39,7 @@ def run():
 
     k_means = KMeans(
         n_clusters=clusters,
-        init='random',
+        init='k-means++',
         n_init=5,
         max_iter=500,
         tol=1e-03,
