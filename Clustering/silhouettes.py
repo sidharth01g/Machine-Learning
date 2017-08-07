@@ -5,6 +5,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
 sys.path.insert(0, parent_dir)
 
+from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
 import pprint as pp
@@ -68,9 +69,9 @@ def run():
     cluster_labels = np.unique(y_kmeans)
     heading('Cluster labels')
     print(cluster_labels)
-    n_clusters = cluster_labels.shape
+    n_clusters = cluster_labels.shape[0]
 
-    heading('Silhouette values:')
+    heading('Silhouette values for each sample:')
     silhouette_values = silhouette_samples(
         X,
         y_kmeans,
@@ -79,6 +80,34 @@ def run():
     pp.pprint(silhouette_values)
     pp.pprint(silhouette_values.shape)
 
+    y_bottom = 0
+    y_ticks = []
+    heading('Silhouette plot')
+    plt.figure()
+    for index, label in enumerate(cluster_labels):
+        silhouette_values_cluster = silhouette_values[y_kmeans == label]
+        silhouette_values_cluster.sort()
+        print('\nSilhouette values for label ', label)
+        pp.pprint(silhouette_values_cluster)
+        pp.pprint(silhouette_values_cluster.shape)
+        color = cm.jet(index / n_clusters)
+
+        y_top = y_bottom + len(silhouette_values_cluster)
+        plt.barh(
+            range(y_bottom, y_top),
+            silhouette_values_cluster,
+            color=color,
+            edgecolor='none',
+            height=1.0
+        )
+        y_ticks.append((y_bottom + y_top) / 2)
+        y_bottom = y_top
+
+    plt.title('Silhouette plot')
+    plt.xlabel('Silhouette value')
+    plt.ylabel('Cluster')
+    plt.yticks(y_ticks, cluster_labels)
+    plt.show()
 
 
 if __name__ == '__main__':
