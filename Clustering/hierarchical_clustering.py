@@ -101,7 +101,6 @@ def run():
         labels=indices,
     )
     pp.pprint(dendr)
-    pp.pprint(dendr.shape)
 
 
 if __name__ == '__main__':
