@@ -13,7 +13,7 @@ from scipy.cluster.hierarchy import linkage
 from scipy.cluster.hierarchy import dendrogram
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
-from sklearn.clustering import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import KMeans
 from sklearn.datasets import make_moons
 from utils.common import heading
@@ -63,6 +63,32 @@ def run():
         label='Cluster 1'
     )
     ax1.set_title('K Means Clustering')
+
+    heading('Agglomerative Clustering')
+    agg_clustering = AgglomerativeClustering(
+        n_clusters=2,
+        affinity='euclidean',
+        memory=dir_path,
+        linkage='complete',
+    )
+
+    y_agg = agg_clustering.fit_predict(X)
+    print('\nClusters:')
+    pp.pprint(y_agg)
+    pp.pprint(y_agg.shape)
+
+    ax2.scatter(
+        X[y_agg == 0, 0],
+        X[y_agg == 0, 1],
+        label='Cluster 0'
+    )
+    ax2.scatter(
+        X[y_agg == 1, 0],
+        X[y_agg == 1, 1],
+        label='Cluster 1'
+    )
+    ax2.set_title('Agglomerative Clustering')
+
     plt.show()
 
 
