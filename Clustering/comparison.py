@@ -14,6 +14,7 @@ from scipy.cluster.hierarchy import dendrogram
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
 from sklearn.datasets import make_moons
 from utils.common import heading
@@ -89,8 +90,34 @@ def run():
     )
     ax2.set_title('Agglomerative Clustering')
 
-    plt.show()
+    heading('DBSCAN Clustering')
 
+    dbscan = DBSCAN(
+        eps=0.3,
+        min_samples=5,
+        metric='euclidean',
+        algorithm='auto',
+        n_jobs=-1
+    )
+
+    plt.figure()
+
+    y_dbscan = dbscan.fit_predict(X)
+    print('\nClusters:')
+    pp.pprint(y_dbscan)
+    pp.pprint(y_dbscan.shape)
+    plt.scatter(
+        X[y_dbscan == 0, 0],
+        X[y_dbscan == 0, 1],
+        label='Cluster 0'
+    )
+    plt.scatter(
+        X[y_dbscan == 1, 0],
+        X[y_dbscan == 1, 1],
+        label='Cluster 1'
+    )
+    plt.title('Agglomerative Clustering')
+    plt.show()
 
 
 if __name__ == '__main__':
