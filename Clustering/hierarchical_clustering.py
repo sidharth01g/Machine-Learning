@@ -74,6 +74,26 @@ def run():
     pp.pprint(clusters)
     pp.pprint(clusters.shape)
 
+    heading('Clustering dataframe')
+    columns = [
+        'Label 1',
+        'Label 2',
+        'Distance',
+        'Number of points in cluster'
+    ]
+    cluster_indices = [
+        'Cluster %d' % index for index in range(clusters.shape[0])
+    ]
+
+    df_clustering = pd.DataFrame(
+        clusters,
+        columns=columns,
+        index=cluster_indices
+    )
+
+    pp.pprint(df_clustering)
+    pp.pprint(df_clustering.shape)
+
 
 if __name__ == '__main__':
     run()
