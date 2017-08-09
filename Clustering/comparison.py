@@ -6,13 +6,7 @@ parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
 sys.path.insert(0, parent_dir)
 
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import pprint as pp
-from scipy.cluster.hierarchy import linkage
-from scipy.cluster.hierarchy import dendrogram
-from scipy.spatial.distance import pdist
-from scipy.spatial.distance import squareform
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
