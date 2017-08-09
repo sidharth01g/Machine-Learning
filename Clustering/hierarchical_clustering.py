@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import pprint as pp
 from scipy.cluster.hierarchy import linkage
+from scipy.cluster.hierarchy import dendrogram
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 from utils.common import heading
@@ -93,6 +94,14 @@ def run():
 
     pp.pprint(df_clustering)
     pp.pprint(df_clustering.shape)
+
+    heading('Dendrogram')
+    dendr = dendrogram(
+        clusters,
+        labels=indices,
+    )
+    pp.pprint(dendr)
+    pp.pprint(dendr.shape)
 
 
 if __name__ == '__main__':
