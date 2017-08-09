@@ -110,7 +110,7 @@ def run():
         X[y_dbscan == 1, 1],
         label='Cluster 1'
     )
-    plt.title('Agglomerative Clustering')
+    plt.title('DBSCAN Clustering')
     plt.show()
 
 
