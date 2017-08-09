@@ -102,6 +102,7 @@ def run():
     )
     pp.pprint(dendr)
     plt.tight_layout()
+    plt.ylabel('Euclidean distance')
     plt.show()
 
 
