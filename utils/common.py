@@ -1,9 +1,11 @@
 import hashlib
 import math
+import numpy as np
 import os
 import pandas as pd
 import scipy.misc
 import shutil
+import struct
 
 
 class RemoteDataLoader(object):
@@ -89,3 +91,37 @@ def ensemble_error(n_classifers, error_probability):
     )
 
     return sum(probabilities)
+
+
+def load_mnist_dataset(dir_path, type_='train'):
+
+    images_path = os.path.join(
+        dir_path,
+        '%s-images-idx3-ubyte' % type_
+    )
+    labels_path = os.path.join(
+        dir_path,
+        '%s-labels-idx1-ubyte' % type_
+    )
+
+    with open(labels_path, 'rb') as label_file:
+        (magic, n) = struct.unpack(
+            '>II',
+            label_file.read(8)
+        )
+        labels = np.fromfile(label_file, dtype=np.uint8)
+
+    with open(images_path, 'rb') as image_file:
+        (magic, number, rows, columns) = struct.unpack(
+            '>IIII',
+            image_file.read(16)
+        )
+        image_data_serial = np.fromfile(image_file, dtype=np.uint8)
+        n_images = len(labels)
+        n_pixels = 28 * 28
+        images = image_data_serial.reshape(
+            n_images,
+            n_pixels
+        )
+
+    return (images, labels)
