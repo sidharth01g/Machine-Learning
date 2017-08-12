@@ -33,15 +33,13 @@ def run():
 
     # Select a few samples (n_samples) of 'digit' for displaying
     digit = 5
-    n_samples = 12
+    n_samples = 24
     digit_images = X_train[y_train == digit]
     digit_samples = digit_images[:n_samples]
-    print(digit_samples.shape)
 
     # Set number of rows and columns for subplots
     n_rows = int(np.floor(np.sqrt(n_samples)))
     n_columns = int(np.ceil(n_samples / n_rows))
-    print(n_rows, n_columns)
 
     # Display the selected samples of 'digit'
     (fig, ax) = plt.subplots(nrows=n_rows, ncols=n_columns, sharex=True)
