@@ -6,6 +6,7 @@ parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
 sys.path.insert(0, parent_dir)
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pprint as pp
 from utils.common import heading
 from utils.common import load_mnist_dataset
@@ -25,11 +26,37 @@ def run():
         # plt.figure()
         digit_serial = X_train[y_train == digit][0]
         digit_reshaped = digit_serial.reshape(28, 28)
-        pp.pprint(digit_reshaped)
+        # pp.pprint(digit_reshaped)
         ax[digit].imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
         ax[digit].set_xticks([])
         ax[digit].set_yticks([])
 
+    # Select a few samples (n_samples) of 'digit' for displaying
+    digit = 5
+    n_samples = 12
+    digit_images = X_train[y_train == digit]
+    digit_samples = digit_images[:n_samples]
+    print(digit_samples.shape)
+
+    # Set number of rows and columns for subplots
+    n_rows = int(np.floor(np.sqrt(n_samples)))
+    n_columns = int(np.ceil(n_samples / n_rows))
+    print(n_rows, n_columns)
+
+    # Display the selected samples of 'digit'
+    (fig, ax) = plt.subplots(nrows=n_rows, ncols=n_columns, sharex=True)
+    ax = ax.flatten()
+    index = 0
+
+    for digit_serial in digit_samples:
+        digit_reshaped = digit_serial.reshape(28, 28)
+        ax[index].imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
+
+        ax[index].set_xticks([])
+        ax[index].set_yticks([])
+        index += 1
+
+    heading('Digit: %s, Samples: %s' % (digit, n_samples))
     plt.show()
 
 
