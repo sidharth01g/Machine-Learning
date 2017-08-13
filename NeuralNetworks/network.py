@@ -23,7 +23,8 @@ class NeuralNetwork(object):
     def n_layers(self):
         return len(self.node_counts)
 
-    def sigmoid(self, z):
+    @staticmethod
+    def sigmoid(z):
         return 1.0 / (1.0 + np.exp(-z))
 
     def feed_forward(self, x):
@@ -34,7 +35,7 @@ class NeuralNetwork(object):
                 ',  x: ', x.shape,
                 ',  b: ', self.biases[i].shape
             )
-            x = self.sigmoid(
+            x = NeuralNetwork.sigmoid(
                 np.dot(self.weights[i], x)
                 + self.biases[i][np.newaxis].T
             )
