@@ -69,9 +69,10 @@ class NeuralNetwork(object):
         # back-propagation
         for i in range(self.n_layers - 1):
             z = (
-                np.dot(self.weights[i], activation)
+                np.dot(self.weights[i], activation)[np.newaxis].T
                 + self.biases[i][np.newaxis].T
-            )
+            ).flatten()
+
             zs.append(z)
             activation = NeuralNetwork.sigmoid(z)
             activations.append(activation)
@@ -83,10 +84,9 @@ class NeuralNetwork(object):
             NeuralNetwork.cost_derivative(activations[-1], y)
             * NeuralNetwork.sigmoid_prime(zs[-1])
         )
+
         nabla_b[-1] = delta
-        nabla_w[-1] = np.dot(delta, activations[-2].T)
-        # print('\ndelta')
-        # pp.pprint(delta)
+        nabla_w[-1] = np.dot(delta[np.newaxis].T, activations[-2][np.newaxis])
 
         for l in range(2, self.n_layers):
             delta = (
@@ -94,14 +94,9 @@ class NeuralNetwork(object):
                 * NeuralNetwork.sigmoid_prime(zs[-l])
             )
             nabla_b[-l] = delta
-            nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
-            # print('\ndelta')
-            # pp.pprint(delta)
-        # print(activations)
-        # print('\nnabla_b')
-        # pp.pprint(nabla_b)
-        # print('\nnabla_w')
-        # pp.pprint(nabla_w)
+            # nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
+            nabla_w[-l] = np.dot(
+                delta[np.newaxis].T, activations[-l - 1][np.newaxis])
 
         return (nabla_b, nabla_w)
 
@@ -117,20 +112,25 @@ class NeuralNetwork(object):
             ]
         )
 
-        for x, y in mini_batch:
-            print('x: ', x.shape)
-            print('y: ', y.shape)
+        for x, y in zip(mini_batch[0], mini_batch[1]):
             (delta_nabla_b, delta_nabla_w) = self.back_propagate(x, y)
+            for nb, nw in zip(delta_nabla_b, delta_nabla_w):
+                print(nb.shape, nw.shape)
             nabla_b += delta_nabla_b
             nabla_w += delta_nabla_w
 
-        print('nabla_b')
-        pp.pprint(nabla_b)
-        pp.pprint(nabla_b.shape)
-        print('nabla_w')
-        pp.pprint(nabla_w.shape)
+        for w in self.weights:
+            print(w.shape)
 
-
+        for i in range(self.n_layers - 1):
+            self.weights[i] -= (
+                eta / len(mini_batch)
+                * nabla_w[i]
+            )
+            self.biases[i] -= (
+                eta / len(mini_batch)
+                * nabla_b[i]
+            )
 
 
 def test():
@@ -176,8 +176,8 @@ def test():
     pp.pprint(result)
     pp.pprint(result.shape)
 
-    heading('Test back propagation')
-    net.back_propagate(x_sample, y_sample)
+    # heading('Test back propagation')
+    # net.back_propagate(x_sample, y_sample)
 
     heading('Test update_minibatch')
     print(y_train[:5].shape)
@@ -188,9 +188,12 @@ def test():
         print(x.shape, y)
     """
     net.update_minibatch(
-        mini_batch=zip(X_train[:5], y_train[:5]),
+        mini_batch=(X_train[:5], y_train[:5],),
         eta=0.1
     )
+
+    for w in net.weights:
+        pp.pprint(w)
     exit('TEST')
 
 
