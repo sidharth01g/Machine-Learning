@@ -1,5 +1,7 @@
 import numpy as np
 import pprint as pp
+import pyprind
+import random
 
 
 class NeuralNetwork(object):
@@ -114,13 +116,8 @@ class NeuralNetwork(object):
 
         for x, y in zip(mini_batch[0], mini_batch[1]):
             (delta_nabla_b, delta_nabla_w) = self.back_propagate(x, y)
-            for nb, nw in zip(delta_nabla_b, delta_nabla_w):
-                print(nb.shape, nw.shape)
             nabla_b += delta_nabla_b
             nabla_w += delta_nabla_w
-
-        for w in self.weights:
-            print(w.shape)
 
         for i in range(self.n_layers - 1):
             self.weights[i] -= (
@@ -131,6 +128,41 @@ class NeuralNetwork(object):
                 eta / len(mini_batch)
                 * nabla_b[i]
             )
+
+    def stochastic_gradient_descent(self, x_train, y_train,
+                                    batch_size, eta, epochs):
+
+        training_data = [[x, y] for x, y in zip(x_train, y_train)]
+        n_samples = len(training_data)
+
+        progress_bar = pyprind.ProgBar(epochs * n_samples, monitor=True,
+                                       title='Neural Network Training')
+
+        for epoch in range(epochs):
+            print('\n\nEpoch: ', epoch)
+            random.shuffle(training_data)
+            start_index = 0
+
+            while(start_index < n_samples):
+                stop_index = min(start_index + batch_size, n_samples)
+
+                x_temp = np.array(
+                    [
+                        data[0]
+                        for data in training_data[start_index: stop_index]
+                    ]
+                )
+                y_temp = np.array(
+                    [
+                        data[1]
+                        for data in training_data[start_index: stop_index]
+                    ]
+                )
+                for _ in range(start_index, stop_index):
+                    progress_bar.update()
+                mini_batch = (x_temp, y_temp)
+                self.update_minibatch(mini_batch, eta)
+                start_index = stop_index
 
 
 def test():
@@ -187,13 +219,23 @@ def test():
         print(type(x), type(y))
         print(x.shape, y)
     """
+    """
     net.update_minibatch(
         mini_batch=(X_train[:5], y_train[:5],),
         eta=0.1
     )
-
     for w in net.weights:
         pp.pprint(w)
+    """
+    heading('Test stochastic_gradient_descent')
+    net.stochastic_gradient_descent(
+        x_train=X_train,
+        y_train=y_train,
+        batch_size=10,
+        eta=0.1,
+        epochs=2
+    )
+
     exit('TEST')
 
 
