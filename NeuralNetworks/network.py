@@ -85,6 +85,8 @@ class NeuralNetwork(object):
         )
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].T)
+        # print('\ndelta')
+        # pp.pprint(delta)
 
         for l in range(2, self.n_layers):
             delta = (
@@ -93,10 +95,42 @@ class NeuralNetwork(object):
             )
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
-            # pp.pprint(nabla_b[-l])
-            # pp.pprint(nabla_w[-l])
+            # print('\ndelta')
+            # pp.pprint(delta)
+        # print(activations)
+        # print('\nnabla_b')
+        # pp.pprint(nabla_b)
+        # print('\nnabla_w')
+        # pp.pprint(nabla_w)
 
         return (nabla_b, nabla_w)
+
+    def update_minibatch(self, mini_batch, eta):
+        nabla_b = np.array(
+            [
+                np.zeros(b.shape) for b in self.biases
+            ]
+        )
+        nabla_w = np.array(
+            [
+                np.zeros(w.shape) for w in self.weights
+            ]
+        )
+
+        for x, y in mini_batch:
+            print('x: ', x.shape)
+            print('y: ', y.shape)
+            (delta_nabla_b, delta_nabla_w) = self.back_propagate(x, y)
+            nabla_b += delta_nabla_b
+            nabla_w += delta_nabla_w
+
+        print('nabla_b')
+        pp.pprint(nabla_b)
+        pp.pprint(nabla_b.shape)
+        print('nabla_w')
+        pp.pprint(nabla_w.shape)
+
+
 
 
 def test():
@@ -135,8 +169,8 @@ def test():
 
     # Test feed_forward
     heading('Feed-forward test')
-    x_sample = X_train[0][np.newaxis].T
-    y_sample = y_train[0]
+    x_sample = X_train[1][np.newaxis].T
+    y_sample = y_train[1]
     print(x_sample.shape)
     result = net.feed_forward(x_sample)
     pp.pprint(result)
@@ -144,6 +178,19 @@ def test():
 
     heading('Test back propagation')
     net.back_propagate(x_sample, y_sample)
+
+    heading('Test update_minibatch')
+    print(y_train[:5].shape)
+    """
+    print(zip(X_train[:5], y_train[:5]))
+    for x, y in zip(X_train[:5], y_train[:5]):
+        print(type(x), type(y))
+        print(x.shape, y)
+    """
+    net.update_minibatch(
+        mini_batch=zip(X_train[:5], y_train[:5]),
+        eta=0.1
+    )
     exit('TEST')
 
 
