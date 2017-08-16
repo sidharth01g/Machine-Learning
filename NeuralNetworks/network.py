@@ -39,12 +39,7 @@ class NeuralNetwork(object):
 
     def feed_forward(self, x):
         for i in range(self.n_layers - 1):
-            print('\nfeed_forward stage: ', i)
-            print(
-                'w: ', self.weights[i].shape,
-                ',  x: ', x.shape,
-                ',  b: ', self.biases[i].shape
-            )
+
             x = NeuralNetwork.sigmoid(
                 np.dot(self.weights[i], x)
                 + self.biases[i][np.newaxis].T
@@ -199,14 +194,6 @@ def test():
     pp.pprint(net.biases)
     pp.pprint(net.biases[0].shape)
 
-    # Test feed_forward
-    heading('Feed-forward test')
-    x_sample = X_train[1][np.newaxis].T
-    y_sample = y_train[1]
-    print(x_sample.shape)
-    result = net.feed_forward(x_sample)
-    pp.pprint(result)
-    pp.pprint(result.shape)
 
     # heading('Test back propagation')
     # net.back_propagate(x_sample, y_sample)
@@ -229,13 +216,23 @@ def test():
     """
     heading('Test stochastic_gradient_descent')
     net.stochastic_gradient_descent(
-        x_train=X_train,
-        y_train=y_train,
+        x_train=X_train[:100],
+        y_train=y_train[:100],
         batch_size=10,
-        eta=0.1,
+        eta=0.01,
         epochs=2
     )
 
+    # Test feed_forward
+    heading('Feed-forward test')
+    sample_index = 10000
+    x_sample = X_train[sample_index][np.newaxis].T
+    y_sample = y_train[sample_index]
+    result = net.feed_forward(x_sample)
+    print('Result:')
+    pp.pprint(result)
+    pp.pprint(result.shape)
+    print('Actual digit: ', y_sample)
     exit('TEST')
 
 
