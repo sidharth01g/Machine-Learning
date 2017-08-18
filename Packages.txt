@@ -8,3 +8,4 @@ pip install nltk
 pip install flask
 pip install wtforms
 pip install seaborn
+ pip install psutil
