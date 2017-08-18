@@ -177,7 +177,6 @@ def test():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
     sys.path.insert(0, parent_dir)
-    import matplotlib.pyplot as plt
     import numpy as np
     from utils.common import heading
     from utils.common import load_mnist_dataset
