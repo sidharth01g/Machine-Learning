@@ -116,16 +116,16 @@ class NeuralNetwork(object):
 
         for i in range(self.n_layers - 1):
             self.weights[i] -= (
-                eta / len(mini_batch)
+                (eta / len(mini_batch))
                 * nabla_w[i]
             )
             self.biases[i] -= (
-                eta / len(mini_batch)
+                (eta / len(mini_batch))
                 * nabla_b[i]
             )
 
-    def stochastic_gradient_descent(self, x_train, y_train,
-                                    batch_size, eta, epochs):
+    def stochastic_gradient_descent(self, x_train, y_train, batch_size, eta,
+                                    epochs, x_test=None, y_test=None):
 
         training_data = [[x, y] for x, y in zip(x_train, y_train)]
         n_samples = len(training_data)
@@ -159,6 +159,16 @@ class NeuralNetwork(object):
                 self.update_minibatch(mini_batch, eta)
                 start_index = stop_index
 
+            if x_test is not None and y_test is not None:
+                evaluation = self.evaluate(x_test, y_test)
+                score = 100.0 * (evaluation / x_test.shape[0])
+                print('Score: ', score, '%')
+
+    def evaluate(self, x_test, y_test):
+        test_results = [(np.argmax(self.feed_forward(x)), y)
+                        for (x, y) in zip(x_test, y_test)]
+        return sum(int(x == y) for (x, y) in test_results)
+
 
 def test():
     # Perform import specific to test() method
@@ -177,6 +187,25 @@ def test():
     data_dir = os.path.join(parent_dir, 'downloads', 'MNIST')
     print('Dataset directory: ', data_dir)
     (X_train, y_train) = load_mnist_dataset(data_dir)
+    training_data = [[x, y] for x, y in zip(X_train, y_train)]
+    random.shuffle(training_data)
+    X = np.array(
+        [
+            data[0]
+            for data in training_data
+        ]
+    )
+    y = np.array(
+        [
+            data[1]
+            for data in training_data
+        ]
+    )
+    X_train = X[0: 50000]
+    X_test = X[50000:]
+    y_train = y[0: 50000]
+    y_test = y[50000:]
+
     heading('Trainiing data')
     print('X_train: ', X_train.shape)
     print('y_train: ', y_train.shape)
@@ -193,7 +222,6 @@ def test():
     print('Biases:')
     pp.pprint(net.biases)
     pp.pprint(net.biases[0].shape)
-
 
     # heading('Test back propagation')
     # net.back_propagate(x_sample, y_sample)
@@ -216,12 +244,15 @@ def test():
     """
     heading('Test stochastic_gradient_descent')
     net.stochastic_gradient_descent(
-        x_train=X_train[:100],
-        y_train=y_train[:100],
+        x_train=X_train,
+        y_train=y_train,
         batch_size=10,
-        eta=0.01,
-        epochs=2
+        eta=3.0,
+        epochs=1,
+        x_test=X_test,
+        y_test=y_test
     )
+    exit('TEST')
 
     # Test feed_forward
     heading('Feed-forward test')
@@ -233,7 +264,13 @@ def test():
     pp.pprint(result)
     pp.pprint(result.shape)
     print('Actual digit: ', y_sample)
-    exit('TEST')
+    heading('Debug:')
+    print('BIASES:')
+    for a in net.biases:
+        pp.pprint(a)
+    print('WEIGHTS:')
+    for a in net.weights:
+        pp.pprint(a)
 
 
 if __name__ == '__main__':
