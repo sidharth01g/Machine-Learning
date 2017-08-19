@@ -23,15 +23,15 @@ t_start = time.time()
 result = np.dot(w, x)
 t_stop = time.time()
 t_ms = (t_stop - t_start) * 1000
-print('Result: ', result.shape)
+print('Result: ', result, result.shape)
 print('Time: ', t_ms, ' milliseconds')
 
 heading('Non-vectorized')
 t_start = time.time()
 result = 0
-for i in range(w.shape[0]):
+for i in range(dim):
     result += w[i] * x[i]
 t_stop = time.time()
 t_ms = (t_stop - t_start) * 1000
-print('Result: ', result.shape)
+print('Result: ', result, result.shape)
 print('Time: ', t_ms, ' milliseconds')
