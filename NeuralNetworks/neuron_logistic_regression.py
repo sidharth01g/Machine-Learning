@@ -87,6 +87,16 @@ def test():
     (X, y) = load_mnist_dataset(data_dir)
     temp_1 = X[y == 1]
     temp_0 = X[y == 0]
+    temp_y_1 = y[y == 1]
+    temp_y_0 = y[y == 0]
+    index = 300
+    print(temp_y_0)
+    digit_serial = temp_0[index]
+    digit_reshaped = digit_serial.reshape(28, 28)
+    # pp.pprint(digit_reshaped)
+    plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
+    plt.title(str(temp_y_0[index]))
+    plt.show()
     print(temp_0.shape)
     exit()
 
