@@ -85,6 +85,10 @@ def test():
     data_dir = os.path.join(parent_dir, 'downloads', 'MNIST')
     print('Dataset directory: ', data_dir)
     (X, y) = load_mnist_dataset(data_dir)
+    temp_1 = X[y == 1]
+    temp_0 = X[y == 0]
+    print(temp_0.shape)
+    exit()
 
     X = np.vstack((X[y == 0], X[y == 1]))
     y = np.hstack((y[y == 0], y[y == 1]))
@@ -130,19 +134,26 @@ def test():
 
     heading('Training neuron: Gradent descent')
     costs = neuron.run_gradient_descent(
-        X=x_train, Y=y_train, eta=0.01, n_iter=1000)
-    plt.plot(costs)
-    plt.ylabel('Cost')
-    plt.xlabel('Iterations')
-    plt.legend(loc='best')
+        X=x_train, Y=y_train, eta=0.1, n_iter=100)
+    #plt.plot(costs)
+    #plt.ylabel('Cost')
+    #plt.xlabel('Iterations')
+    #plt.legend(loc='best')
     #plt.show()
     # pp.pprint(costs)
 
     heading('Testing neuron')
     Y_predict = neuron.predict(x_test)
-    accuracy = (1.0 - np.sum(np.abs(Y_predict - y_test)) / y_test.shape[1])
+    accuracy = 1.0 - (np.sum(np.abs(Y_predict - y_test)) / y_test.shape[1])
     print('Accuracy: %s percent' % str(accuracy * 100))
 
+    index = 100
+    digit_serial = x_test[:, index]
+    digit_reshaped = digit_serial.reshape(28, 28)
+    # pp.pprint(digit_reshaped)
+    plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
+    plt.title(str(y_test[0, index]))
+    plt.show()
 
 if __name__ == '__main__':
     test()
