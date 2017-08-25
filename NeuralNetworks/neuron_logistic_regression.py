@@ -1,6 +1,5 @@
 import numpy as np
 import pprint as pp
-import progressbar
 import pyprind
 import random
 
@@ -33,21 +32,25 @@ class Neuron(object):
         }
         # print(A)
         cost = (-1.0 / m) * np.sum(Y * np.log(A) + (1 - Y) * np.log(1 - A))
-        print('Cost: ', cost)
         return (gradients, cost)
 
     def run_gradient_descent(self, X, Y, eta, n_iter):
 
         costs = []
-        bar = progressbar.ProgressBar(redirect_stdout=True)
+        block_character = bytes((219,)).decode('cp437')
+        progress_bar = pyprind.ProgBar(
+            n_iter, monitor=True, title='Neuron Training',
+            bar_char=block_character
+        )
         for i in range(n_iter):
             (gradients, cost) = self.propagate(X, Y)
             costs.append(cost)
-            print('Cost: ', cost, sep=' ', end='', flush=True)
 
             # update parameters
             self.w -= eta * gradients['dw']
             self.b -= eta*gradients['db']
+
+            progress_bar.update()
         return costs
 
 
@@ -110,10 +113,10 @@ def test():
     print('Bias gradients:')
     pp.pprint(gradients['db'].shape)
 
-    heading('Gradent descent')
+    heading('Training neuron: Gradent descent')
     costs = neuron.run_gradient_descent(
-        X=x_train, Y=y_train, eta=0.01, n_iter=100)
-    pp.pprint(costs)
+        X=x_train, Y=y_train, eta=0.002, n_iter=100)
+    # pp.pprint(costs)
 
 
 if __name__ == '__main__':
