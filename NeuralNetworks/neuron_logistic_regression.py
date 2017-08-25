@@ -116,9 +116,12 @@ def test():
 
     heading('Training neuron: Gradent descent')
     costs = neuron.run_gradient_descent(
-        X=x_train, Y=y_train, eta=0.002, n_iter=100)
+        X=x_train, Y=y_train, eta=0.002, n_iter=500)
     plt.plot(costs)
-    plt.show
+    plt.ylabel('Cost')
+    plt.xlabel('Iterations')
+    plt.legend(loc='best')
+    plt.show()
     # pp.pprint(costs)
 
 
