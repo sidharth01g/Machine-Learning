@@ -54,6 +54,20 @@ class Neuron(object):
             progress_bar.update()
         return costs
 
+    def predict(self, X):
+        Z = np.dot(self.w.T, X) + self.b
+        A = Neuron.sigmoid(Z)
+
+        m = X.shape[1]
+        Y_predict = np.zeros((1, m))
+        for i in range(A.shape[1]):
+            if A[0, i] <= 0.5:
+                Y_predict[0, i] = 0
+            else:
+                Y_predict[0, i] = 1
+        return Y_predict
+
+
 
 def test():
     # Perform import specific to test() method
@@ -94,8 +108,8 @@ def test():
     x_train = X[:, :train_size]
     y_train = y[:, :train_size]
 
-    x_test = X[:, :test_size]
-    y_test = y[:, :test_size]
+    x_test = X[:, train_size:]
+    y_test = y[:, train_size:]
 
     print('Training samples: ', train_size)
     print('Training vectors: ', x_train.shape)
@@ -116,13 +130,18 @@ def test():
 
     heading('Training neuron: Gradent descent')
     costs = neuron.run_gradient_descent(
-        X=x_train, Y=y_train, eta=0.002, n_iter=500)
+        X=x_train, Y=y_train, eta=0.01, n_iter=1000)
     plt.plot(costs)
     plt.ylabel('Cost')
     plt.xlabel('Iterations')
     plt.legend(loc='best')
-    plt.show()
+    #plt.show()
     # pp.pprint(costs)
+
+    heading('Testing neuron')
+    Y_predict = neuron.predict(x_test)
+    accuracy = (1.0 - np.sum(np.abs(Y_predict - y_test)) / y_test.shape[1])
+    print('Accuracy: %s percent' % str(accuracy * 100))
 
 
 if __name__ == '__main__':
