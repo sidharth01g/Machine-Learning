@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import pprint as pp
 import pyprind
@@ -116,6 +117,8 @@ def test():
     heading('Training neuron: Gradent descent')
     costs = neuron.run_gradient_descent(
         X=x_train, Y=y_train, eta=0.002, n_iter=100)
+    plt.plot(costs)
+    plt.show
     # pp.pprint(costs)
 
 
