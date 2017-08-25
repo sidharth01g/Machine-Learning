@@ -8,4 +8,5 @@ pip install nltk
 pip install flask
 pip install wtforms
 pip install seaborn
- pip install psutil
+pip install psutil
+pip install progressbar2
