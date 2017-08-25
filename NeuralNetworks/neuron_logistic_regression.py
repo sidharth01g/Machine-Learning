@@ -2,7 +2,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pprint as pp
 import pyprind
-import random
 
 np.set_printoptions(threshold=np.nan)
 
@@ -68,7 +67,6 @@ class Neuron(object):
         return Y_predict
 
 
-
 def test():
     # Perform import specific to test() method
     import os
@@ -85,55 +83,49 @@ def test():
     data_dir = os.path.join(parent_dir, 'downloads', 'MNIST')
     print('Dataset directory: ', data_dir)
     (X, y) = load_mnist_dataset(data_dir)
-    temp_1 = X[y == 1]
-    temp_0 = X[y == 0]
-    temp_y_1 = y[y == 1]
+    temp_0 = X[y == 0].T
+    temp_1 = X[y == 1].T
     temp_y_0 = y[y == 0]
-    index = 300
-    print(temp_y_0)
-    digit_serial = temp_0[index]
-    digit_reshaped = digit_serial.reshape(28, 28)
-    # pp.pprint(digit_reshaped)
-    plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
-    plt.title(str(temp_y_0[index]))
-    plt.show()
-    print(temp_0.shape)
-    exit()
+    temp_y_1 = y[y == 1]
+    temp_y_0 = temp_y_0.reshape(1, temp_y_0.shape[0])
+    temp_y_1 = temp_y_1.reshape(1, temp_y_1.shape[0])
 
-    X = np.vstack((X[y == 0], X[y == 1]))
-    y = np.hstack((y[y == 0], y[y == 1]))
+    X = np.hstack((temp_0, temp_1))
+    y = np.hstack((temp_y_0, temp_y_1))
+    permutation = np.random.permutation(X.shape[1])
+    X = X[:, permutation]
+    y = y[:, permutation]
+    print(X.shape)
+    print(y.shape)
 
-    # pp.pprint(np.vstack((X[y == 0], X[y == 1])))
-    permutation = np.random.permutation(X.shape[0])
-    X = X[permutation]
-    pp.pprint(permutation)
-    X = X.T
     X = X / np.amax(X)
-    y = y.reshape(1, y.shape[0])
-    pp.pprint(X.shape)
-    pp.pprint(y.shape)
-
-    dim = X.shape[0]
 
     train_ratio = 0.7
     train_size = int(train_ratio * X.shape[1])
-    test_size = X.shape[1] - train_size
 
     x_train = X[:, :train_size]
     y_train = y[:, :train_size]
 
     x_test = X[:, train_size:]
     y_test = y[:, train_size:]
-
+    """
+    for index in [10, 30, 60, 70, 75]:
+        digit_serial = x_test[:, index]
+        digit_reshaped = digit_serial.reshape(28, 28)
+        # pp.pprint(digit_reshaped)
+        plt.figure()
+        plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
+        plt.title(str(y_test[0, index]))
+    plt.show()
+    """
     print('Training samples: ', train_size)
     print('Training vectors: ', x_train.shape)
     print('Training classes', y_train.shape)
     print('Test vectors: ', x_test.shape)
     print('Test classes', y_test.shape)
 
-    print(Neuron.sigmoid(np.asarray([0, 0.5])))
-
     heading('Neuron')
+    dim = X.shape[0]
     neuron = Neuron(dim)
     print('Weights: ', neuron.w.shape[0])
     (gradients, cost) = neuron.propagate(x_train, y_train)
@@ -145,25 +137,17 @@ def test():
     heading('Training neuron: Gradent descent')
     costs = neuron.run_gradient_descent(
         X=x_train, Y=y_train, eta=0.1, n_iter=100)
-    #plt.plot(costs)
-    #plt.ylabel('Cost')
-    #plt.xlabel('Iterations')
-    #plt.legend(loc='best')
-    #plt.show()
-    # pp.pprint(costs)
+    plt.plot(costs)
+    plt.ylabel('Cost')
+    plt.xlabel('Iterations')
+    plt.legend(loc='best')
+    plt.show()
 
     heading('Testing neuron')
     Y_predict = neuron.predict(x_test)
     accuracy = 1.0 - (np.sum(np.abs(Y_predict - y_test)) / y_test.shape[1])
     print('Accuracy: %s percent' % str(accuracy * 100))
 
-    index = 100
-    digit_serial = x_test[:, index]
-    digit_reshaped = digit_serial.reshape(28, 28)
-    # pp.pprint(digit_reshaped)
-    plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
-    plt.title(str(y_test[0, index]))
-    plt.show()
 
 if __name__ == '__main__':
     test()
