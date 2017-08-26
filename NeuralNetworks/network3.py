@@ -34,14 +34,11 @@ class Network(object):
         self.Z = {0: None}
         self.A = {0: X}
         for layer in self.weights:
-            print('\nLayer: ', layer)
             self.Z[layer] = (
                 np.dot(self.weights[layer], self.A[layer - 1])
                 + self.biases[layer]
             )
             self.A[layer] = np.tanh(self.Z[layer])
-            print('Z: ', self.Z[layer].shape)
-            print('A: ', self.A[layer].shape)
 
     def get_cost(self, Y):
         # m: number of training examples
@@ -98,12 +95,15 @@ class Network(object):
             self.biases[layer] = (
                 self.biases[layer] - learning_rate * self.db[layer]
             )
-            print(self.weights[layer].shape, self.biases[layer].shape)
-    """
+
     def run_gradient_descent(self, X, Y, learning_rate, epochs):
+        costs = []
         for i in range(epochs):
-            forward_propagate(self, X)
-    """
+            self.forward_propagate(X)
+            costs.append(self.get_cost(Y))
+            self.back_propagate(Y)
+            self.update_parameters(learning_rate)
+        return costs
 
 
 def load_mnist(train_ratio, data_dir=None):
@@ -168,7 +168,7 @@ def test():
     print('x_test: ', x_test.shape)
     print('y_test: ', y_test.shape)
 
-    # Intitialize network
+    # Initialize network
     node_counts = [x_train.shape[0], 3, 5, y_train.shape[0]]
     net = Network(node_counts)
     heading('Neural Network parameters')
@@ -187,6 +187,15 @@ def test():
     heading('Back propagation')
     net.back_propagate(y_train)
     net.update_parameters(learning_rate=0.1)
+
+    del(net)
+    net = Network(node_counts)
+    heading('Greadient descent')
+    learning_rate = 0.5
+    epochs = 100
+    costs = net.run_gradient_descent(
+        X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
+    print('Costs: ', costs)
 
 
 if __name__ == '__main__':
