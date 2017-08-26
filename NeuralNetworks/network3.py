@@ -24,6 +24,12 @@ class Network(object):
         self.weight_gradients = None
         self.bias_gradients = None
 
+    @property
+    def L(self):
+        # Biases and weights should tally (to the number of layers)
+        assert(len(self.weights) == len(self.biases))
+        return len(self.weights)
+
     def forward_propagate(self, X):
         self.Z = {0: None}
         self.A = {0: X}
@@ -36,6 +42,68 @@ class Network(object):
             self.A[layer] = np.tanh(self.Z[layer])
             print('Z: ', self.Z[layer].shape)
             print('A: ', self.A[layer].shape)
+
+    def get_cost(self, Y):
+        # m: number of training examples
+        m = Y.shape[1]
+
+        # predicted output = activation at the output (deepest) layer
+        Y_hat = self.A[self.L]
+        cross_entropy_loss = (
+            Y * np.log(Y_hat) + (1 - Y) * np.log(1 - Y_hat)
+        )
+        cost = (-1.0 / m) * np.sum(cross_entropy_loss)
+        cost = np.squeeze(cost)
+
+        return cost
+
+    def back_propagate(self, Y):
+        m = Y.shape[1]
+
+        # Backpropagation at the output layer L
+        self.dZ = {self.L: self.A[self.L] - Y}
+        self.dW = {
+            self.L: (
+                (1.0 / m)
+                * np.dot(self.dZ[self.L], self.A[self.L - 1].T)
+            )
+        }
+        self.db = {
+            self.L: (
+                (1.0 / m)
+                * np.sum(self.dZ[self.L], axis=1, keepdims=True)
+            )
+        }
+
+        # Backpropagation at other layers (L-1, L-2, ... , 1)
+        for layer in range(self.L - 1, 0, -1):
+            self.dZ[layer] = (
+                (np.dot(self.weights[layer + 1].T, self.dZ[layer + 1]))
+                * (1.0 - np.power(self.A[layer], 2))
+            )
+
+            self.dW[layer] = (
+                (1.0 / m) * np.dot(self.dZ[layer], self.A[layer - 1].T)
+            )
+
+            self.db[layer] = (
+                (1.0 / m) * np.sum(self.dZ[layer], axis=1, keepdims=True)
+            )
+
+    def update_parameters(self, learning_rate):
+        for layer in range(1, self.L):
+            self.weights[layer] = (
+                self.weights[layer] - learning_rate * self.dW[layer]
+            )
+            self.biases[layer] = (
+                self.biases[layer] - learning_rate * self.db[layer]
+            )
+            print(self.weights[layer].shape, self.biases[layer].shape)
+    """
+    def run_gradient_descent(self, X, Y, learning_rate, epochs):
+        for i in range(epochs):
+            forward_propagate(self, X)
+    """
 
 
 def load_mnist(train_ratio, data_dir=None):
@@ -112,6 +180,13 @@ def test():
 
     heading('Forward propagation')
     net.forward_propagate(x_train)
+
+    heading('Test cost computation')
+    print('Cost: ', net.get_cost(y_train))
+
+    heading('Back propagation')
+    net.back_propagate(y_train)
+    net.update_parameters(learning_rate=0.1)
 
 
 if __name__ == '__main__':
