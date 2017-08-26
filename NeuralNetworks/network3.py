@@ -97,12 +97,19 @@ class Network(object):
             )
 
     def run_gradient_descent(self, X, Y, learning_rate, epochs):
+        block_character = bytes((219,)).decode('cp437')
+        progress_bar = pyprind.ProgBar(
+            epochs, monitor=True, title='Training the Neural Network..',
+            bar_char=block_character
+        )
+
         costs = []
         for i in range(epochs):
             self.forward_propagate(X)
             costs.append(self.get_cost(Y))
             self.back_propagate(Y)
             self.update_parameters(learning_rate)
+            progress_bar.update()
         return costs
 
 
