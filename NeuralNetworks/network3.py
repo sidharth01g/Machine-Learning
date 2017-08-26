@@ -10,16 +10,33 @@ class Network(object):
 
     def __init__(self, node_counts, weights_init_factor=0.01):
         assert(type(node_counts) is list)
-        self.weights = []
-        self.biases = []
+        self.weights = {}
+        self.biases = {}
         for i in range(1, len(node_counts)):
-            self.weights.append(
+            self.weights[i] = (
                 weights_init_factor
                 * np.random.rand(node_counts[i], node_counts[i - 1])
             )
-            self.biases.append(
+            self.biases[i] = (
                 np.zeros((node_counts[i], 1), dtype=float)
             )
+
+        self.weight_gradients = None
+        self.bias_gradients = None
+
+    def forward_propagate(self, X):
+        self.Z = {0: None}
+        self.A = {0: X}
+        for layer in self.weights:
+            print('\nLayer: ', layer)
+            self.Z[layer] = (
+                np.dot(self.weights[layer], self.A[layer - 1])
+                + self.biases[layer]
+            )
+            self.A[layer] = np.tanh(self.Z[layer])
+            print('Z: ', self.Z[layer].shape)
+            print('A: ', self.A[layer].shape)
+
 
 def load_mnist(train_ratio, data_dir=None):
     # Perform import specific to test() method
@@ -63,7 +80,6 @@ def load_mnist(train_ratio, data_dir=None):
     return (x_train, x_test, y_train, y_test)
 
 
-
 def test():
     # Import methods for running test()
     import os
@@ -87,12 +103,15 @@ def test():
     # Intitialize network
     node_counts = [x_train.shape[0], 3, 5, y_train.shape[0]]
     net = Network(node_counts)
-    heading('Nerural Network parameters')
-    for i in range(len(node_counts) - 1):
+    heading('Neural Network parameters')
+    for i in range(1, len(node_counts)):
         print(
             'Layer: %s, Weights: %s, Biases: %s'
             % (i, net.weights[i].shape, net.biases[i].shape)
         )
+
+    heading('Forward propagation')
+    net.forward_propagate(x_train)
 
 
 if __name__ == '__main__':
