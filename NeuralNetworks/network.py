@@ -1,176 +1,130 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import pprint as pp
 import pyprind
-import random
+
+np.set_printoptions(threshold=np.nan)
 
 
-class NeuralNetwork(object):
+class Network(object):
 
-    def __init__(self, node_counts):
-        self.node_counts = node_counts
-        self.weights = np.array(
-            [
-                np.random.randn(self.node_counts[i + 1], self.node_counts[i])
-                for i in range(self.n_layers)[: -1]
-            ]
-        )
-        self.biases = np.array(
-            [
-                np.random.randn(self.node_counts[i])
-                for i in range(self.n_layers)[1:]
-            ]
-        )
+    def __init__(self, node_counts, weights_init_factor=0.01):
+        assert(type(node_counts) is list)
+        # np.random.seed(1)
+        self.weights = {}
+        self.biases = {}
+        for i in range(1, len(node_counts)):
+            self.weights[i] = (
+                weights_init_factor
+                * np.random.randn(node_counts[i], node_counts[i - 1])
+            )
+            self.biases[i] = (
+                np.zeros((node_counts[i], 1), dtype=float)
+            )
+
+        self.weight_gradients = None
+        self.bias_gradients = None
 
     @property
-    def n_layers(self):
-        return len(self.node_counts)
+    def L(self):
+        # Biases and weights should tally (to the number of layers)
+        assert(len(self.weights) == len(self.biases))
+        return len(self.weights)
 
     @staticmethod
-    def sigmoid(z):
-        return 1.0 / (1.0 + np.exp(-z))
+    def sigmoid(Z):
+        return 1.0 / (1.0 + np.exp(-Z))
 
-    @staticmethod
-    def sigmoid_prime(z):
-        return NeuralNetwork.sigmoid(z) * (1 - NeuralNetwork.sigmoid(z))
-
-    @staticmethod
-    def cost_derivative(output_activations, y):
-        return (output_activations - y)
-
-    def feed_forward(self, x):
-        for i in range(self.n_layers - 1):
-
-            x = NeuralNetwork.sigmoid(
-                np.dot(self.weights[i], x)
-                + self.biases[i][np.newaxis].T
-            )
-        return x
-
-    def back_propagate(self, x, y):
-        nabla_b = np.array(
-            [
-                np.zeros(b.shape) for b in self.biases
-            ]
-        )
-        nabla_w = np.array(
-            [
-                np.zeros(w.shape) for w in self.weights
-            ]
-        )
-
-        activation = x
-        activations = [activation]
-        zs = []
-
-        # Feed forward and store 'z' and activations to be consumed by
-        # back-propagation
-        for i in range(self.n_layers - 1):
-            z = (
-                np.dot(self.weights[i], activation)[np.newaxis].T
-                + self.biases[i][np.newaxis].T
-            ).flatten()
-
-            zs.append(z)
-            activation = NeuralNetwork.sigmoid(z)
-            activations.append(activation)
-
-        activations = np.array(activations)
-
-        # Back-propagation
-        delta = (
-            NeuralNetwork.cost_derivative(activations[-1], y)
-            * NeuralNetwork.sigmoid_prime(zs[-1])
-        )
-
-        nabla_b[-1] = delta
-        nabla_w[-1] = np.dot(delta[np.newaxis].T, activations[-2][np.newaxis])
-
-        for l in range(2, self.n_layers):
-            delta = (
-                np.dot(self.weights[-l + 1].T, delta)
-                * NeuralNetwork.sigmoid_prime(zs[-l])
-            )
-            nabla_b[-l] = delta
-            # nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
-            nabla_w[-l] = np.dot(
-                delta[np.newaxis].T, activations[-l - 1][np.newaxis])
-
-        return (nabla_b, nabla_w)
-
-    def update_minibatch(self, mini_batch, eta):
-        nabla_b = np.array(
-            [
-                np.zeros(b.shape) for b in self.biases
-            ]
-        )
-        nabla_w = np.array(
-            [
-                np.zeros(w.shape) for w in self.weights
-            ]
-        )
-
-        for x, y in zip(mini_batch[0], mini_batch[1]):
-            (delta_nabla_b, delta_nabla_w) = self.back_propagate(x, y)
-            nabla_b += delta_nabla_b
-            nabla_w += delta_nabla_w
-
-        for i in range(self.n_layers - 1):
-            self.weights[i] -= (
-                (eta / len(mini_batch))
-                * nabla_w[i]
-            )
-            self.biases[i] -= (
-                (eta / len(mini_batch))
-                * nabla_b[i]
+    def forward_propagate(self, X):
+        self.Z = {0: None}
+        self.A = {0: X}
+        for layer in self.weights:
+            self.Z[layer] = (
+                np.dot(self.weights[layer], self.A[layer - 1])
+                + self.biases[layer]
             )
 
-    def stochastic_gradient_descent(self, x_train, y_train, batch_size, eta,
-                                    epochs, x_test=None, y_test=None):
+            if layer == self.L:
+                self.A[layer] = Network.sigmoid(self.Z[layer])
+            else:
+                self.A[layer] = np.tanh(self.Z[layer])
 
-        training_data = [[x, y] for x, y in zip(x_train, y_train)]
-        n_samples = len(training_data)
+        return self.A[self.L]
 
-        progress_bar = pyprind.ProgBar(epochs * n_samples, monitor=True,
-                                       title='Neural Network Training')
+    def get_cost(self, Y):
+        # m: number of training examples
+        m = Y.shape[1]
 
-        for epoch in range(epochs):
-            print('\n\nEpoch: ', epoch)
-            random.shuffle(training_data)
-            start_index = 0
+        # predicted output = activation at the output (deepest) layer
+        Y_hat = self.A[self.L]
+        cross_entropy_loss = (
+            Y * np.log(Y_hat) + (1 - Y) * np.log(1 - Y_hat)
+        )
+        cost = (-1.0 / m) * np.sum(cross_entropy_loss)
+        cost = np.squeeze(cost)
 
-            while(start_index < n_samples):
-                stop_index = min(start_index + batch_size, n_samples)
+        return cost
 
-                x_temp = np.array(
-                    [
-                        data[0]
-                        for data in training_data[start_index: stop_index]
-                    ]
-                )
-                y_temp = np.array(
-                    [
-                        data[1]
-                        for data in training_data[start_index: stop_index]
-                    ]
-                )
-                for _ in range(start_index, stop_index):
-                    progress_bar.update()
-                mini_batch = (x_temp, y_temp)
-                self.update_minibatch(mini_batch, eta)
-                start_index = stop_index
+    def back_propagate(self, Y):
+        m = Y.shape[1]
 
-            if x_test is not None and y_test is not None:
-                evaluation = self.evaluate(x_test, y_test)
-                score = 100.0 * (evaluation / x_test.shape[0])
-                print('Score: ', score, '%')
+        # Backpropagation at the output layer L
+        self.dZ = {self.L: self.A[self.L] - Y}
+        self.dW = {
+            self.L: (
+                (1.0 / m)
+                * np.dot(self.dZ[self.L], self.A[self.L - 1].T)
+            )
+        }
+        self.db = {
+            self.L: (
+                (1.0 / m)
+                * np.sum(self.dZ[self.L], axis=1, keepdims=True)
+            )
+        }
 
-    def evaluate(self, x_test, y_test):
-        test_results = [(np.argmax(self.feed_forward(x)), y)
-                        for (x, y) in zip(x_test, y_test)]
-        return sum(int(x == y) for (x, y) in test_results)
+        # Backpropagation at other layers (L-1, L-2, ... , 1)
+        for layer in range(self.L - 1, 0, -1):
+            self.dZ[layer] = (
+                (np.dot(self.weights[layer + 1].T, self.dZ[layer + 1]))
+                * (1.0 - np.power(self.A[layer], 2))
+            )
+
+            self.dW[layer] = (
+                (1.0 / m) * np.dot(self.dZ[layer], self.A[layer - 1].T)
+            )
+
+            self.db[layer] = (
+                (1.0 / m) * np.sum(self.dZ[layer], axis=1, keepdims=True)
+            )
+
+    def update_parameters(self, learning_rate):
+        for layer in range(1, self.L):
+            self.weights[layer] = (
+                self.weights[layer] - learning_rate * self.dW[layer]
+            )
+            self.biases[layer] = (
+                self.biases[layer] - learning_rate * self.db[layer]
+            )
+
+    def run_gradient_descent(self, X, Y, learning_rate, epochs):
+        block_character = bytes((219,)).decode('cp437')
+        progress_bar = pyprind.ProgBar(
+            epochs, monitor=True, title='Training the Neural Network..',
+            bar_char=block_character
+        )
+
+        costs = []
+        for i in range(epochs):
+            self.forward_propagate(X)
+            costs.append(self.get_cost(Y))
+            self.back_propagate(Y)
+            self.update_parameters(learning_rate)
+            progress_bar.update()
+        return costs
 
 
-def test():
+def load_mnist(train_ratio, data_dir=None):
     # Perform import specific to test() method
     import os
     import sys
@@ -178,98 +132,125 @@ def test():
     parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
     sys.path.insert(0, parent_dir)
     import numpy as np
-    from utils.common import heading
+
     from utils.common import load_mnist_dataset
 
     # Prepare training data
-    heading('Data preparation')
-    data_dir = os.path.join(parent_dir, 'downloads', 'MNIST')
+
+    if not data_dir:
+        data_dir = os.path.join(parent_dir, 'downloads', 'MNIST')
     print('Dataset directory: ', data_dir)
-    (X_train, y_train) = load_mnist_dataset(data_dir)
-    training_data = [[x, y] for x, y in zip(X_train, y_train)]
-    random.shuffle(training_data)
-    X = np.array(
-        [
-            data[0]
-            for data in training_data
-        ]
-    )
-    y = np.array(
-        [
-            data[1]
-            for data in training_data
-        ]
-    )
-    X_train = X[0: 50000]
-    X_test = X[50000:]
-    y_train = y[0: 50000]
-    y_test = y[50000:]
+    (X, y) = load_mnist_dataset(data_dir)
 
-    heading('Trainiing data')
-    print('X_train: ', X_train.shape)
+    # Class 0: digits[0], Class 1: digits[1]
+    digits = [0, 6]
+    # Only 2 classes allowed (binary classification between 2 digits)
+    assert(len(digits) == 2)
+    temp_0 = X[y == digits[0]].T
+    temp_1 = X[y == digits[1]].T
+    temp_y_0 = y[y == digits[0]]
+    temp_y_1 = y[y == digits[1]]
+    temp_y_0 = temp_y_0.reshape(1, temp_y_0.shape[0])
+    temp_y_1 = temp_y_1.reshape(1, temp_y_1.shape[0])
+
+    X = np.hstack((temp_0, temp_1))
+    y = np.hstack((temp_y_0, temp_y_1))
+    permutation = np.random.permutation(X.shape[1])
+    X = X[:, permutation]
+    y = y[:, permutation]
+
+    X = X / np.amax(X)
+
+    # Map values of y to 1 and 0 (output layer has sigmoidal activation)
+    # i.e output is restricted to [0, 1]
+    mapping = {digits[0]: 0, digits[1]: 1}
+    y_copy = np.copy(y)
+    for k, v in mapping.items():
+        y_copy[y == k] = v
+
+    y = y_copy
+
+    train_size = int(train_ratio * X.shape[1])
+
+    x_train = X[:, :train_size]
+    y_train = y[:, :train_size]
+
+    x_test = X[:, train_size:]
+    y_test = y[:, train_size:]
+    # show_samples(x_train, y_train, [1, 2, 3])
+    return (x_train, x_test, y_train, y_test)
+
+
+def show_samples(x, y, indices_list):
+    for index in indices_list:
+        digit_serial = x[:, index]
+        digit_reshaped = digit_serial.reshape(28, 28)
+        # pp.pprint(digit_reshaped)
+        plt.figure()
+        plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
+        plt.title(str(y[0, index]))
+    plt.show()
+
+
+def test():
+    # Import methods for running test()
+    import os
+    import sys
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    parent_dir = os.path.abspath(os.path.join(dir_path, os.pardir))
+    sys.path.insert(0, parent_dir)
+    from utils.common import heading
+
+    # Fetch dataset
+    heading('Data preparation')
+    train_ratio = 0.7
+    (x_train, x_test, y_train, y_test) = load_mnist(train_ratio)
+    print('train_ratio', train_ratio)
+    print('x_train: ', x_train.shape)
     print('y_train: ', y_train.shape)
+    print('x_test: ', x_test.shape)
+    print('y_test: ', y_test.shape)
 
-    # Instantiate neural network
-    node_counts = [28*28, 20, 10]
-    net = NeuralNetwork(node_counts)
-    pp.pprint(net)
-    print('Layers: ', net.n_layers)
-    print('node_counts: ', net.node_counts)
-    print('Weights:')
-    pp.pprint(net.weights)
-    pp.pprint(net.weights[0].shape)
-    print('Biases:')
-    pp.pprint(net.biases)
-    pp.pprint(net.biases[0].shape)
+    # Initialize network
+    node_counts = [x_train.shape[0], 3, 5, y_train.shape[0]]
+    net = Network(node_counts, weights_init_factor=0.01)
+    heading('Neural Network parameters')
+    for i in range(1, len(node_counts)):
+        print(
+            'Layer: %s, Weights: %s, Biases: %s'
+            % (i, net.weights[i].shape, net.biases[i].shape)
+        )
 
-    # heading('Test back propagation')
-    # net.back_propagate(x_sample, y_sample)
+    heading('Forward propagation')
+    Y_hat = net.forward_propagate(x_train)
+    print('Y_hat.shape', Y_hat.shape)
 
-    heading('Test update_minibatch')
-    print(y_train[:5].shape)
-    """
-    print(zip(X_train[:5], y_train[:5]))
-    for x, y in zip(X_train[:5], y_train[:5]):
-        print(type(x), type(y))
-        print(x.shape, y)
-    """
-    """
-    net.update_minibatch(
-        mini_batch=(X_train[:5], y_train[:5],),
-        eta=0.1
-    )
-    for w in net.weights:
-        pp.pprint(w)
-    """
-    heading('Test stochastic_gradient_descent')
-    net.stochastic_gradient_descent(
-        x_train=X_train,
-        y_train=y_train,
-        batch_size=10,
-        eta=3.0,
-        epochs=1,
-        x_test=X_test,
-        y_test=y_test
-    )
-    exit('TEST')
+    heading('Test cost computation')
+    print('Cost: ', net.get_cost(y_train))
 
-    # Test feed_forward
-    heading('Feed-forward test')
-    sample_index = 10000
-    x_sample = X_train[sample_index][np.newaxis].T
-    y_sample = y_train[sample_index]
-    result = net.feed_forward(x_sample)
-    print('Result:')
-    pp.pprint(result)
-    pp.pprint(result.shape)
-    print('Actual digit: ', y_sample)
-    heading('Debug:')
-    print('BIASES:')
-    for a in net.biases:
-        pp.pprint(a)
-    print('WEIGHTS:')
-    for a in net.weights:
-        pp.pprint(a)
+    heading('Back propagation')
+    net.back_propagate(y_train)
+    net.update_parameters(learning_rate=0.01)
+
+    del(net)
+    net = Network(node_counts, weights_init_factor=0.1)
+
+    heading('Gradient descent')
+    learning_rate = 1
+    epochs = 100
+    costs = net.run_gradient_descent(
+        X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
+    print('Costs: ', costs)
+
+    heading('Testing')
+    Y_predict = net.forward_propagate(x_test)
+    # print(Y_predict)
+    m_test = y_test.shape[1]
+    Y_thresh = Y_predict > 0.5
+    y_test_transormed = (y_test == 1)
+    score = np.sum(Y_thresh == y_test_transormed) / m_test
+    print('Score: %s percent' % (score * 100))
 
 
 if __name__ == '__main__':
