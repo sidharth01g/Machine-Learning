@@ -10,12 +10,13 @@ class Network(object):
 
     def __init__(self, node_counts, weights_init_factor=0.01):
         assert(type(node_counts) is list)
+        # np.random.seed(1)
         self.weights = {}
         self.biases = {}
         for i in range(1, len(node_counts)):
             self.weights[i] = (
                 weights_init_factor
-                * np.random.rand(node_counts[i], node_counts[i - 1])
+                * np.random.randn(node_counts[i], node_counts[i - 1])
             )
             self.biases[i] = (
                 np.zeros((node_counts[i], 1), dtype=float)
@@ -30,6 +31,10 @@ class Network(object):
         assert(len(self.weights) == len(self.biases))
         return len(self.weights)
 
+    @staticmethod
+    def sigmoid(Z):
+        return 1.0 / (1.0 + np.exp(-Z))
+
     def forward_propagate(self, X):
         self.Z = {0: None}
         self.A = {0: X}
@@ -38,7 +43,13 @@ class Network(object):
                 np.dot(self.weights[layer], self.A[layer - 1])
                 + self.biases[layer]
             )
-            self.A[layer] = np.tanh(self.Z[layer])
+
+            if layer == self.L:
+                self.A[layer] = Network.sigmoid(self.Z[layer])
+            else:
+                self.A[layer] = np.tanh(self.Z[layer])
+
+        return self.A[self.L]
 
     def get_cost(self, Y):
         # m: number of training examples
@@ -130,10 +141,15 @@ def load_mnist(train_ratio, data_dir=None):
         data_dir = os.path.join(parent_dir, 'downloads', 'MNIST')
     print('Dataset directory: ', data_dir)
     (X, y) = load_mnist_dataset(data_dir)
-    temp_0 = X[y == 0].T
-    temp_1 = X[y == 1].T
-    temp_y_0 = y[y == 0]
-    temp_y_1 = y[y == 1]
+
+    # Class 0: digits[0], Class 1: digits[1]
+    digits = [0, 6]
+    # Only 2 classes allowed (binary classification between 2 digits)
+    assert(len(digits) == 2)
+    temp_0 = X[y == digits[0]].T
+    temp_1 = X[y == digits[1]].T
+    temp_y_0 = y[y == digits[0]]
+    temp_y_1 = y[y == digits[1]]
     temp_y_0 = temp_y_0.reshape(1, temp_y_0.shape[0])
     temp_y_1 = temp_y_1.reshape(1, temp_y_1.shape[0])
 
@@ -145,6 +161,15 @@ def load_mnist(train_ratio, data_dir=None):
 
     X = X / np.amax(X)
 
+    # Map values of y to 1 and 0 (output layer has sigmoidal activation)
+    # i.e output is restricted to [0, 1]
+    mapping = {digits[0]: 0, digits[1]: 1}
+    y_copy = np.copy(y)
+    for k, v in mapping.items():
+        y_copy[y == k] = v
+
+    y = y_copy
+
     train_size = int(train_ratio * X.shape[1])
 
     x_train = X[:, :train_size]
@@ -152,7 +177,19 @@ def load_mnist(train_ratio, data_dir=None):
 
     x_test = X[:, train_size:]
     y_test = y[:, train_size:]
+    # show_samples(x_train, y_train, [1, 2, 3])
     return (x_train, x_test, y_train, y_test)
+
+
+def show_samples(x, y, indices_list):
+    for index in indices_list:
+        digit_serial = x[:, index]
+        digit_reshaped = digit_serial.reshape(28, 28)
+        # pp.pprint(digit_reshaped)
+        plt.figure()
+        plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
+        plt.title(str(y[0, index]))
+    plt.show()
 
 
 def test():
@@ -177,7 +214,7 @@ def test():
 
     # Initialize network
     node_counts = [x_train.shape[0], 3, 5, y_train.shape[0]]
-    net = Network(node_counts)
+    net = Network(node_counts, weights_init_factor=0.01)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
@@ -186,23 +223,34 @@ def test():
         )
 
     heading('Forward propagation')
-    net.forward_propagate(x_train)
+    Y_hat = net.forward_propagate(x_train)
+    print('Y_hat.shape', Y_hat.shape)
 
     heading('Test cost computation')
     print('Cost: ', net.get_cost(y_train))
 
     heading('Back propagation')
     net.back_propagate(y_train)
-    net.update_parameters(learning_rate=0.1)
+    net.update_parameters(learning_rate=0.01)
 
     del(net)
-    net = Network(node_counts)
-    heading('Greadient descent')
-    learning_rate = 0.5
+    net = Network(node_counts, weights_init_factor=0.1)
+
+    heading('Gradient descent')
+    learning_rate = 1
     epochs = 100
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
     print('Costs: ', costs)
+
+    heading('Testing')
+    Y_predict = net.forward_propagate(x_test)
+    # print(Y_predict)
+    m_test = y_test.shape[1]
+    Y_thresh = Y_predict > 0.5
+    y_test_transormed = (y_test == 1)
+    score = np.sum(Y_thresh == y_test_transormed) / m_test
+    print('Score: %s percent' % (score * 100))
 
 
 if __name__ == '__main__':
