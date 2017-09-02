@@ -130,7 +130,7 @@ class Network(object):
             self.biases[layer] = (
                 self.biases[layer] - learning_rate * self.db[layer]
             )
-        print('\n', self.weights[self.L], learning_rate * self.dW[self.L])
+        # print('\n', self.weights[self.L], learning_rate * self.dW[self.L])
 
     def run_gradient_descent(self, X, Y, learning_rate, epochs):
         assert(type(learning_rate) is float)
