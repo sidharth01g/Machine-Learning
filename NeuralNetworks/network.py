@@ -8,11 +8,21 @@ np.set_printoptions(threshold=np.nan)
 
 class Network(object):
 
-    def __init__(self, node_counts, weights_init_factor=0.01):
+    def __init__(self, node_counts, activation_function_hidden,
+                 activation_derivative_function_hidden,
+                 weights_init_factor=0.01):
+
         assert(type(node_counts) is list)
+        assert(type(weights_init_factor) is float)
         # np.random.seed(1)
+        self.activation_function_hidden = activation_function_hidden
+        self.activation_derivative_function_hidden = (
+            activation_derivative_function_hidden
+        )
+
         self.weights = {}
         self.biases = {}
+
         for i in range(1, len(node_counts)):
             self.weights[i] = (
                 weights_init_factor
@@ -47,8 +57,10 @@ class Network(object):
             if layer == self.L:
                 self.A[layer] = Network.sigmoid(self.Z[layer])
             else:
-                self.A[layer] = np.tanh(self.Z[layer])
-
+                # self.A[layer] = np.tanh(self.Z[layer])
+                self.A[layer] = self.activation_function_hidden(self.Z[layer])
+        # print(self.Z[3])
+        # exit()
         return self.A[self.L]
 
     def get_cost(self, Y):
@@ -69,7 +81,15 @@ class Network(object):
         m = Y.shape[1]
 
         # Backpropagation at the output layer L
+        self.dA = {
+            self.L: (-Y / self.A[self.L]) + (1 - Y) / (1 - self.A[self.L])
+        }
         self.dZ = {self.L: self.A[self.L] - Y}
+        """
+        self.dZ = {
+            self.L: self.dA[self.L] * self.A[self.L] * (1 - self.A[self.L])
+        }
+        """
         self.dW = {
             self.L: (
                 (1.0 / m)
@@ -85,29 +105,36 @@ class Network(object):
 
         # Backpropagation at other layers (L-1, L-2, ... , 1)
         for layer in range(self.L - 1, 0, -1):
-            self.dZ[layer] = (
-                (np.dot(self.weights[layer + 1].T, self.dZ[layer + 1]))
-                * (1.0 - np.power(self.A[layer], 2))
+            self.dA[layer] = np.dot(
+                self.weights[layer + 1].T, self.dZ[layer + 1]
             )
-
+            self.dZ[layer] = np.multiply(
+                self.dA[layer],
+                self.activation_derivative_function_hidden(self.Z[layer])
+            )
             self.dW[layer] = (
-                (1.0 / m) * np.dot(self.dZ[layer], self.A[layer - 1].T)
+                (1.0 / m)
+                * np.dot(self.dZ[layer], self.A[layer - 1].T)
             )
-
             self.db[layer] = (
-                (1.0 / m) * np.sum(self.dZ[layer], axis=1, keepdims=True)
+                (1.0 / m)
+                * np.sum(self.dZ[layer], axis=1, keepdims=True)
             )
 
     def update_parameters(self, learning_rate):
-        for layer in range(1, self.L):
+        assert(type(learning_rate) is float)
+        for layer in range(1, self.L + 1):
             self.weights[layer] = (
                 self.weights[layer] - learning_rate * self.dW[layer]
             )
             self.biases[layer] = (
                 self.biases[layer] - learning_rate * self.db[layer]
             )
+        print('\n', self.weights[self.L], learning_rate * self.dW[self.L])
 
     def run_gradient_descent(self, X, Y, learning_rate, epochs):
+        assert(type(learning_rate) is float)
+        assert(type(epochs) is int)
         block_character = bytes((219,)).decode('cp437')
         progress_bar = pyprind.ProgBar(
             epochs, monitor=True, title='Training the Neural Network..',
@@ -192,6 +219,31 @@ def show_samples(x, y, indices_list):
     plt.show()
 
 
+def get_activation_functions(function_name):
+
+    def sigmoid(Z):
+        return 1.0 / (1.0 + np.exp(-Z))
+
+    def sigmoid_derivative(Z):
+        return sigmoid(Z) * (1 - sigmoid(Z))
+
+    def relu(Z):
+        return np.maximum(0, Z)
+
+    def relu_derivative(Z):
+        deriv = np.ones(Z.shape)
+        deriv[Z <= 0] = 0.0
+        # print(deriv)
+        return deriv
+
+    mapping = {
+        'tanh': (np.tanh, lambda z: 1 - np.power(np.tanh(z), 2)),
+        'sigmoid': (sigmoid, sigmoid_derivative),
+        'relu': (relu, relu_derivative)
+    }
+    return mapping[function_name]
+
+
 def test():
     # Import methods for running test()
     import os
@@ -213,8 +265,13 @@ def test():
     print('y_test: ', y_test.shape)
 
     # Initialize network
-    node_counts = [x_train.shape[0], 3, 5, y_train.shape[0]]
-    net = Network(node_counts, weights_init_factor=0.01)
+    node_counts = [x_train.shape[0], 10, 5, y_train.shape[0]]
+    (activation_function_hidden, activation_derivative_function_hidden) = (
+        get_activation_functions('relu')
+    )
+    net = Network(
+        node_counts, activation_function_hidden,
+        activation_derivative_function_hidden, weights_init_factor=0.1)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
@@ -229,15 +286,8 @@ def test():
     heading('Test cost computation')
     print('Cost: ', net.get_cost(y_train))
 
-    heading('Back propagation')
-    net.back_propagate(y_train)
-    net.update_parameters(learning_rate=0.01)
-
-    del(net)
-    net = Network(node_counts, weights_init_factor=0.1)
-
     heading('Gradient descent')
-    learning_rate = 1
+    learning_rate = 1.0
     epochs = 100
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
