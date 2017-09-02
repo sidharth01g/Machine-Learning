@@ -260,7 +260,7 @@ def test():
     # Initialize network
     node_counts = [x_train.shape[0], 5, 3, 2, y_train.shape[0]]
     (activation_function_hidden, activation_derivative_function_hidden) = (
-        get_activation_functions('sigmoid')
+        get_activation_functions('relu')
     )
     net = Network(
         node_counts, activation_function_hidden,
