@@ -13,6 +13,7 @@ class Network(object):
                  weights_init_factor=0.01):
 
         assert(type(node_counts) is list)
+        assert(type(weights_init_factor) is float)
         # np.random.seed(1)
         self.activation_function_hidden = activation_function_hidden
         self.activation_derivative_function_hidden = (
@@ -83,10 +84,12 @@ class Network(object):
         self.dA = {
             self.L: (-Y / self.A[self.L]) + (1 - Y) / (1 - self.A[self.L])
         }
-        # self.dZ = {self.L: self.A[self.L] - Y}
+        self.dZ = {self.L: self.A[self.L] - Y}
+        """
         self.dZ = {
             self.L: self.dA[self.L] * self.A[self.L] * (1 - self.A[self.L])
         }
+        """
         self.dW = {
             self.L: (
                 (1.0 / m)
@@ -119,15 +122,19 @@ class Network(object):
             )
 
     def update_parameters(self, learning_rate):
-        for layer in range(1, self.L):
+        assert(type(learning_rate) is float)
+        for layer in range(1, self.L + 1):
             self.weights[layer] = (
                 self.weights[layer] - learning_rate * self.dW[layer]
             )
             self.biases[layer] = (
                 self.biases[layer] - learning_rate * self.db[layer]
             )
+        print('\n', self.weights[self.L], learning_rate * self.dW[self.L])
 
     def run_gradient_descent(self, X, Y, learning_rate, epochs):
+        assert(type(learning_rate) is float)
+        assert(type(epochs) is int)
         block_character = bytes((219,)).decode('cp437')
         progress_bar = pyprind.ProgBar(
             epochs, monitor=True, title='Training the Neural Network..',
@@ -258,13 +265,13 @@ def test():
     print('y_test: ', y_test.shape)
 
     # Initialize network
-    node_counts = [x_train.shape[0], 5, 3, 2, y_train.shape[0]]
+    node_counts = [x_train.shape[0], 10, 5, y_train.shape[0]]
     (activation_function_hidden, activation_derivative_function_hidden) = (
-        get_activation_functions('relu')
+        get_activation_functions('sigmoid')
     )
     net = Network(
         node_counts, activation_function_hidden,
-        activation_derivative_function_hidden, weights_init_factor=1)
+        activation_derivative_function_hidden, weights_init_factor=0.1)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
@@ -279,9 +286,10 @@ def test():
     heading('Test cost computation')
     print('Cost: ', net.get_cost(y_train))
 
+    """
     heading('Back propagation')
     net.back_propagate(y_train)
-    net.update_parameters(learning_rate=0.01)
+    net.update_parameters(learning_rate=1.0)
 
     del(net)
     # net = Network(node_counts, weights_init_factor=0.1)
@@ -289,8 +297,9 @@ def test():
         node_counts, activation_function_hidden,
         activation_derivative_function_hidden, weights_init_factor=0.01)
 
+    """
     heading('Gradient descent')
-    learning_rate = 0.01
+    learning_rate = 1.0
     epochs = 100
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
