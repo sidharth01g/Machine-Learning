@@ -110,10 +110,12 @@ class Network(object):
                 self.activation_derivative_function_hidden(self.Z[layer])
             )
             self.dW[layer] = (
-                np.dot(self.dZ[layer], self.A[layer - 1].T)
+                (1.0 / m)
+                * np.dot(self.dZ[layer], self.A[layer - 1].T)
             )
             self.db[layer] = (
-                np.sum(self.dZ[layer], axis=1, keepdims=True)
+                (1.0 / m)
+                * np.sum(self.dZ[layer], axis=1, keepdims=True)
             )
 
     def update_parameters(self, learning_rate):
@@ -256,13 +258,13 @@ def test():
     print('y_test: ', y_test.shape)
 
     # Initialize network
-    node_counts = [x_train.shape[0], 3, 5, y_train.shape[0]]
+    node_counts = [x_train.shape[0], 5, 3, 2, y_train.shape[0]]
     (activation_function_hidden, activation_derivative_function_hidden) = (
-        get_activation_functions('relu')
+        get_activation_functions('sigmoid')
     )
     net = Network(
         node_counts, activation_function_hidden,
-        activation_derivative_function_hidden, weights_init_factor=0.01)
+        activation_derivative_function_hidden, weights_init_factor=1)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
@@ -279,7 +281,7 @@ def test():
 
     heading('Back propagation')
     net.back_propagate(y_train)
-    net.update_parameters(learning_rate=0.1)
+    net.update_parameters(learning_rate=0.01)
 
     del(net)
     # net = Network(node_counts, weights_init_factor=0.1)
@@ -288,7 +290,7 @@ def test():
         activation_derivative_function_hidden, weights_init_factor=0.01)
 
     heading('Gradient descent')
-    learning_rate = 5
+    learning_rate = 0.01
     epochs = 100
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
