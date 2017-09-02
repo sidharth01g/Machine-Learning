@@ -267,7 +267,7 @@ def test():
     # Initialize network
     node_counts = [x_train.shape[0], 10, 5, y_train.shape[0]]
     (activation_function_hidden, activation_derivative_function_hidden) = (
-        get_activation_functions('sigmoid')
+        get_activation_functions('relu')
     )
     net = Network(
         node_counts, activation_function_hidden,
@@ -286,18 +286,6 @@ def test():
     heading('Test cost computation')
     print('Cost: ', net.get_cost(y_train))
 
-    """
-    heading('Back propagation')
-    net.back_propagate(y_train)
-    net.update_parameters(learning_rate=1.0)
-
-    del(net)
-    # net = Network(node_counts, weights_init_factor=0.1)
-    net = Network(
-        node_counts, activation_function_hidden,
-        activation_derivative_function_hidden, weights_init_factor=0.01)
-
-    """
     heading('Gradient descent')
     learning_rate = 1.0
     epochs = 100
