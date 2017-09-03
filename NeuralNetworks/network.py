@@ -151,7 +151,9 @@ class Network(object):
         return costs
 
 
-def load_mnist(train_ratio, data_dir=None):
+def load_mnist(train_ratio, digits, data_dir=None):
+    assert(type(train_ratio) is float)
+    assert(type(digits) is list and len(digits) == 2)
     # Perform import specific to test() method
     import os
     import sys
@@ -170,7 +172,7 @@ def load_mnist(train_ratio, data_dir=None):
     (X, y) = load_mnist_dataset(data_dir)
 
     # Class 0: digits[0], Class 1: digits[1]
-    digits = [0, 6]
+    # e.g. digits = [7, 8]
     # Only 2 classes allowed (binary classification between 2 digits)
     assert(len(digits) == 2)
     temp_0 = X[y == digits[0]].T
@@ -208,15 +210,14 @@ def load_mnist(train_ratio, data_dir=None):
     return (x_train, x_test, y_train, y_test)
 
 
-def show_samples(x, y, indices_list):
+def show_samples(x, y, indices_list, mapping):
     for index in indices_list:
         digit_serial = x[:, index]
         digit_reshaped = digit_serial.reshape(28, 28)
         # pp.pprint(digit_reshaped)
         plt.figure()
         plt.imshow(digit_reshaped, cmap='Greys', interpolation='nearest')
-        plt.title(str(y[0, index]))
-    plt.show()
+        plt.title('Prediction: ' + str(mapping[y[0, index]]))
 
 
 def get_activation_functions(function_name):
@@ -244,6 +245,15 @@ def get_activation_functions(function_name):
     return mapping[function_name]
 
 
+def plot_cost(costs):
+    plt.figure()
+    plt.title('Cost variation')
+    plt.ylabel('Cost')
+    plt.xlabel('Iterations')
+    plt.plot(costs)
+    plt.legend(loc='best')
+
+
 def test():
     # Import methods for running test()
     import os
@@ -257,7 +267,8 @@ def test():
     # Fetch dataset
     heading('Data preparation')
     train_ratio = 0.7
-    (x_train, x_test, y_train, y_test) = load_mnist(train_ratio)
+    digits = [3, 9]
+    (x_train, x_test, y_train, y_test) = load_mnist(train_ratio, digits)
     print('train_ratio', train_ratio)
     print('x_train: ', x_train.shape)
     print('y_train: ', y_train.shape)
@@ -265,7 +276,7 @@ def test():
     print('y_test: ', y_test.shape)
 
     # Initialize network
-    node_counts = [x_train.shape[0], 10, 5, y_train.shape[0]]
+    node_counts = [x_train.shape[0], 20, 10, 10, y_train.shape[0]]
     (activation_function_hidden, activation_derivative_function_hidden) = (
         get_activation_functions('relu')
     )
@@ -279,29 +290,33 @@ def test():
             % (i, net.weights[i].shape, net.biases[i].shape)
         )
 
-    heading('Forward propagation')
-    Y_hat = net.forward_propagate(x_train)
-    print('Y_hat.shape', Y_hat.shape)
-
-    heading('Test cost computation')
-    print('Cost: ', net.get_cost(y_train))
-
-    heading('Gradient descent')
+    heading('Network Training')
     learning_rate = 1.0
     epochs = 100
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
-    print('Costs: ', costs)
+
+    heading('Costs')
+    print(costs)
 
     heading('Testing')
     Y_predict = net.forward_propagate(x_test)
-    # print(Y_predict)
     m_test = y_test.shape[1]
     Y_thresh = Y_predict > 0.5
     y_test_transormed = (y_test == 1)
     score = np.sum(Y_thresh == y_test_transormed) / m_test
     print('Score: %s percent' % (score * 100))
 
+    mapping = {
+        False: digits[0],
+        True: digits[1]
+    }
+
+    indices_list = [i for i in range(25, 30)]
+    show_samples(
+        x=x_test, y=Y_thresh, indices_list=indices_list, mapping=mapping)
+    plot_cost(costs)
+    plt.show()
 
 if __name__ == '__main__':
     test()
