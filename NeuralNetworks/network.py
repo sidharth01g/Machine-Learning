@@ -245,9 +245,9 @@ def get_activation_functions(function_name):
     return mapping[function_name]
 
 
-def plot_cost(costs):
+def plot_cost(costs, learning_rate):
     plt.figure()
-    plt.title('Cost variation')
+    plt.title('Learning rate=' + str(learning_rate))
     plt.ylabel('Cost')
     plt.xlabel('Iterations')
     plt.plot(costs)
@@ -299,7 +299,15 @@ def test():
     heading('Costs')
     print(costs)
 
-    heading('Testing')
+    heading('Testing: Training set')
+    Y_predict = net.forward_propagate(x_train)
+    m_test = y_train.shape[1]
+    Y_thresh = Y_predict > 0.5
+    y_test_transormed = (y_train == 1)
+    score = np.sum(Y_thresh == y_test_transormed) / m_test
+    print('Score: %s percent' % (score * 100))
+
+    heading('Testing: Test set')
     Y_predict = net.forward_propagate(x_test)
     m_test = y_test.shape[1]
     Y_thresh = Y_predict > 0.5
@@ -315,7 +323,7 @@ def test():
     indices_list = [i for i in range(25, 30)]
     show_samples(
         x=x_test, y=Y_thresh, indices_list=indices_list, mapping=mapping)
-    plot_cost(costs)
+    plot_cost(costs, learning_rate)
     plt.show()
 
 if __name__ == '__main__':
