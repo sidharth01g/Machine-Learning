@@ -335,7 +335,7 @@ def test():
     )
     net = Network(
         node_counts, activation_function_hidden,
-        activation_derivative_function_hidden, keep_probability=0.7)
+        activation_derivative_function_hidden, lambd=1.5)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
