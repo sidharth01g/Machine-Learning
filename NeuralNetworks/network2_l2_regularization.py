@@ -9,15 +9,26 @@ np.set_printoptions(threshold=np.nan)
 class Network(object):
 
     def __init__(self, node_counts, activation_function_hidden,
-                 activation_derivative_function_hidden, lambd=None):
+                 activation_derivative_function_hidden, lambd=None,
+                 keep_probability=None):
 
         assert(type(node_counts) is list)
         assert(lambd is None or type(lambd) is float)
+        assert(
+            keep_probability is None or (
+                type(keep_probability) is float
+                and 0.0 <= keep_probability <= 1.0)
+            )
         self.activation_function_hidden = activation_function_hidden
         self.activation_derivative_function_hidden = (
             activation_derivative_function_hidden
         )
+
+        # L2 regularization parameter
         self.lambd = lambd
+
+        # Dropout regularization parameter: probability of keeping node active
+        self.keep_probability = keep_probability
 
         self.weights = {}
         self.biases = {}
@@ -46,9 +57,14 @@ class Network(object):
     def sigmoid(Z):
         return 1.0 / (1.0 + np.exp(-Z))
 
-    def forward_propagate(self, X):
+    def predict(self, X):
+        return self.forward_propagate(X, train=False)
+
+    def forward_propagate(self, X, train=True):
         self.Z = {0: None}
         self.A = {0: X}
+        # Dropout mask
+        self.D = {0: None}
         for layer in self.weights:
             self.Z[layer] = (
                 np.dot(self.weights[layer], self.A[layer - 1])
@@ -60,6 +76,18 @@ class Network(object):
             else:
                 # self.A[layer] = np.tanh(self.Z[layer])
                 self.A[layer] = self.activation_function_hidden(self.Z[layer])
+
+                if self.keep_probability and train:
+                    # Create and apply dropout mask
+                    self.D[layer] = np.random.rand(
+                        self.A[layer].shape[0], self.A[layer].shape[1]
+                    )
+                    self.D[layer] = self.D[layer] < self.keep_probability
+                    self.A[layer] = (
+                        (1.0 / self.keep_probability)
+                        * self.A[layer] * self.D[layer]
+                    )
+
         # print(self.Z[3])
         # exit()
         return self.A[self.L]
@@ -103,9 +131,12 @@ class Network(object):
             self.L: (
                 (1.0 / m)
                 * np.dot(self.dZ[self.L], self.A[self.L - 1].T)
-                + (self.lambd / m) * self.weights[self.L]
             )
         }
+        # Add L2 regularization term
+        if self.lambd:
+            self.dW[self.L] += (self.lambd / m) * self.weights[self.L]
+
         self.db = {
             self.L: (
                 (1.0 / m)
@@ -118,6 +149,14 @@ class Network(object):
             self.dA[layer] = np.dot(
                 self.weights[layer + 1].T, self.dZ[layer + 1]
             )
+
+            # Dropout
+            if self.keep_probability:
+                self.dA[layer] = (
+                    (1.0 / self.keep_probability)
+                    * self.dA[layer] * self.D[layer]
+                )
+
             self.dZ[layer] = np.multiply(
                 self.dA[layer],
                 self.activation_derivative_function_hidden(self.Z[layer])
@@ -125,8 +164,11 @@ class Network(object):
             self.dW[layer] = (
                 (1.0 / m)
                 * np.dot(self.dZ[layer], self.A[layer - 1].T)
-                + (self.lambd / m) * self.weights[layer]
             )
+            # Add L2 regularization term
+            if self.lambd:
+                self.dW[layer] += (self.lambd / m) * self.weights[layer]
+
             self.db[layer] = (
                 (1.0 / m)
                 * np.sum(self.dZ[layer], axis=1, keepdims=True)
