@@ -9,12 +9,9 @@ np.set_printoptions(threshold=np.nan)
 class Network(object):
 
     def __init__(self, node_counts, activation_function_hidden,
-                 activation_derivative_function_hidden,
-                 weights_init_factor=0.01):
+                 activation_derivative_function_hidden):
 
         assert(type(node_counts) is list)
-        assert(type(weights_init_factor) is float)
-        # np.random.seed(1)
         self.activation_function_hidden = activation_function_hidden
         self.activation_derivative_function_hidden = (
             activation_derivative_function_hidden
@@ -24,6 +21,8 @@ class Network(object):
         self.biases = {}
 
         for i in range(1, len(node_counts)):
+            # He et.al. initialization: works well with ReLU activation
+            weights_init_factor = np.sqrt(1 / node_counts[i - 1])
             self.weights[i] = (
                 weights_init_factor
                 * np.random.randn(node_counts[i], node_counts[i - 1])
@@ -282,7 +281,7 @@ def test():
     )
     net = Network(
         node_counts, activation_function_hidden,
-        activation_derivative_function_hidden, weights_init_factor=0.1)
+        activation_derivative_function_hidden)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
@@ -291,8 +290,8 @@ def test():
         )
 
     heading('Network Training')
-    learning_rate = 1.0
-    epochs = 100
+    learning_rate = 0.01
+    epochs = 200
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
 

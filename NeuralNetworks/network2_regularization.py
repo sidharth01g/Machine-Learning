@@ -9,21 +9,22 @@ np.set_printoptions(threshold=np.nan)
 class Network(object):
 
     def __init__(self, node_counts, activation_function_hidden,
-                 activation_derivative_function_hidden,
-                 weights_init_factor=0.01):
+                 activation_derivative_function_hidden, lambd=None):
 
         assert(type(node_counts) is list)
-        assert(type(weights_init_factor) is float)
-        # np.random.seed(1)
+        assert(lambd is None or type(lambd) is float)
         self.activation_function_hidden = activation_function_hidden
         self.activation_derivative_function_hidden = (
             activation_derivative_function_hidden
         )
+        self.lambd = lambd
 
         self.weights = {}
         self.biases = {}
 
         for i in range(1, len(node_counts)):
+            # He et.al. initialization: works well with ReLU activation
+            weights_init_factor = np.sqrt(1 / node_counts[i - 1])
             self.weights[i] = (
                 weights_init_factor
                 * np.random.randn(node_counts[i], node_counts[i - 1])
@@ -70,9 +71,17 @@ class Network(object):
         # predicted output = activation at the output (deepest) layer
         Y_hat = self.A[self.L]
         cross_entropy_loss = (
-            Y * np.log(Y_hat) + (1 - Y) * np.log(1 - Y_hat)
+            (-1.0 / m)
+            * np.sum(Y * np.log(Y_hat) + (1 - Y) * np.log(1 - Y_hat))
         )
-        cost = (-1.0 / m) * np.sum(cross_entropy_loss)
+        if self.lambd:
+            l2_regularization_cost = (
+                0.5 * (self.lambd / m)
+                * np.sum(np.sum(np.power(w, 2)) for w in self.weights)
+            )
+        else:
+            l2_regularization_cost = 0
+        cost = cross_entropy_loss + l2_regularization_cost
         cost = np.squeeze(cost)
 
         return cost
@@ -94,6 +103,7 @@ class Network(object):
             self.L: (
                 (1.0 / m)
                 * np.dot(self.dZ[self.L], self.A[self.L - 1].T)
+                + (self.lambd / m) * self.weights[self.L]
             )
         }
         self.db = {
@@ -115,6 +125,7 @@ class Network(object):
             self.dW[layer] = (
                 (1.0 / m)
                 * np.dot(self.dZ[layer], self.A[layer - 1].T)
+                + (self.lambd / m) * self.weights[layer]
             )
             self.db[layer] = (
                 (1.0 / m)
@@ -282,7 +293,7 @@ def test():
     )
     net = Network(
         node_counts, activation_function_hidden,
-        activation_derivative_function_hidden, weights_init_factor=0.1)
+        activation_derivative_function_hidden, lambd=1.5)
     heading('Neural Network parameters')
     for i in range(1, len(node_counts)):
         print(
@@ -290,9 +301,17 @@ def test():
             % (i, net.weights[i].shape, net.biases[i].shape)
         )
 
+    heading('Forward propagation')
+    Y_hat = net.forward_propagate(x_train)
+    print('Y_hat.shape', Y_hat.shape)
+
+    heading('Test cost computation')
+    print('Cost: ', net.get_cost(y_train))
+    # exit()
+
     heading('Network Training')
-    learning_rate = 1.0
-    epochs = 100
+    learning_rate = 0.01
+    epochs = 200
     costs = net.run_gradient_descent(
         X=x_train, Y=y_train, learning_rate=learning_rate, epochs=epochs)
 
