@@ -437,7 +437,7 @@ def test():
     indices_list = [i for i in range(25, 30)]
     show_samples(
         x=x_test, y=Y_thresh, indices_list=indices_list, mapping=mapping)
-    parameters = 'alpha: %s, beta: %s' %(alpha, beta)
+    parameters = 'alpha: %s, beta: %s' % (alpha, beta)
     plot_cost(costs, parameters)
     plt.show()
 
