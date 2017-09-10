@@ -119,10 +119,18 @@ class Network(object):
 
         # predicted output = activation at the output (deepest) layer
         Y_hat = self.A[self.L]
+
+        delta = 1e-7
+        low = 0.0 + delta
+        high = 1.0 - delta
+
+        # Restrict value of Y_hat. Values 0.0 or 1.0 will blow up the cost
+        Y_hat = np.clip(Y_hat, low, high)
         cross_entropy_loss = (
             (-1.0 / m)
             * np.sum(Y * np.log(Y_hat) + (1 - Y) * np.log(1 - Y_hat))
         )
+
         if self.lambd:
             l2_regularization_cost = (
                 0.5 * (self.lambd / m)
@@ -139,24 +147,21 @@ class Network(object):
         m = Y.shape[1]
 
         # Backpropagation at the output layer L
-        warnings.filterwarnings('error')
-        try:
-            self.dA = {
-                self.L: (-Y / self.A[self.L]) + (1 - Y) / (1 - self.A[self.L])
-            }
-            self.dZ = {self.L: self.A[self.L] - Y}
-        except Warning:
-            #print(warning)
-            # print(self.A[self.L] == 0)
-            print(0 >= self.A[self.L] >= 1)
-            exit('<<<<<<<<Exit')
-        warnings.filterwarnings('default')
+        # warnings.filterwarnings('error')
 
-        """
-        self.dZ = {
-            self.L: self.dA[self.L] * self.A[self.L] * (1 - self.A[self.L])
+        delta = 1e-7
+        low = 0.0 + delta
+        high = 1.0 - delta
+
+        # Restrict output activation self.A[self.L]. Values 0.0 or 1.0 will
+        # blow up the cost
+        self.A[self.L] = np.clip(self.A[self.L], low, high)
+        self.dA = {
+            self.L: (-Y / self.A[self.L])
+            + (1 - Y) / (1 - self.A[self.L])
         }
-        """
+        self.dZ = {self.L: self.A[self.L] - Y}
+
         self.dW = {
             self.L: (
                 (1.0 / m)
@@ -266,7 +271,7 @@ class Network(object):
                     self.biases[layer]
                     - alpha * Vdb_corrected / (eps + np.sqrt(Sdb_corrected))
                 )
-            print(self.t, np.power(beta1, self.t), np.power(beta2, self.t))
+            # print(eps, self.t, np.power(beta1, self.t), np.power(beta2, self.t))
 
     def run_gradient_descent(self, X, Y, epochs, learning_rate=None,
                              alpha=None, beta=None):
@@ -288,7 +293,7 @@ class Network(object):
             self.back_propagate(Y)
             self.t += 1
             self.update_parameters(learning_rate, alpha, beta1=0.9, beta2=0.99,
-                                   eps=0.01)
+                                   eps=1e-3)
             progress_bar.update()
         return costs
 
