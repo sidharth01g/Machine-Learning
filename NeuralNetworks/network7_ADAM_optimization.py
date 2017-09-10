@@ -248,7 +248,7 @@ class Network(object):
                     beta2 * self.SdW[layer]
                     + (1 - beta2) * np.power(self.dW[layer], 2)
                 )
-                self.SdW[layer] = (
+                self.Sdb[layer] = (
                     beta2 * self.Sdb[layer]
                     + (1 - beta2) * np.power(self.db[layer], 2)
                 )
@@ -260,11 +260,11 @@ class Network(object):
 
                 self.weights[layer] = (
                     self.weights[layer]
-                    - alpha * VdW_corrected / np.sqrt(SdW_corrected + eps)
+                    - alpha * VdW_corrected / (eps + np.sqrt(SdW_corrected))
                 )
                 self.biases[layer] = (
                     self.biases[layer]
-                    - alpha * Vdb_corrected / np.sqrt(Sdb_corrected + eps)
+                    - alpha * Vdb_corrected / (eps + np.sqrt(Sdb_corrected))
                 )
             print(self.t, np.power(beta1, self.t), np.power(beta2, self.t))
 
