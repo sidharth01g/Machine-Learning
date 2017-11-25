@@ -49,6 +49,16 @@ install_dependencies () {
     echo "ERROR: pip3 install progressbar2 failed"
     exit 1
   fi
+  apt-get -y install python3-tk
+  if [ $? -ne 0 ]; then
+    echo "ERROR: apt-get install python3-tk failed"
+    exit 1
+  fi
+  pip3 install -U pyprind
+  if [ $? -ne 0 ]; then
+    echo "ERROR: pip3 install -U pyprind failed"
+    exit 1
+  fi
 }
 
 install_dependencies
